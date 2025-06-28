@@ -3,24 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fake iOS - No JS</title>
+  <title>Fake iOS</title>
   <style>
     body {
       margin: 0;
-      background: linear-gradient(to bottom, #e5e9f0, #f8f8f8);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      user-select: none;
+      background: linear-gradient(to bottom, #e0e5f0, #f9f9fb);
       overflow: hidden;
     }
 
     .status-bar {
       height: 24px;
+      background: #f4f4f4;
       font-size: 12px;
       padding: 0 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #f4f4f4;
       border-bottom: 1px solid #ccc;
     }
 
@@ -36,6 +35,7 @@
       text-align: center;
       font-size: 12px;
       color: #000;
+      cursor: pointer;
     }
 
     .icon-box {
@@ -63,13 +63,48 @@
       padding: 12px 24px;
       display: flex;
       gap: 20px;
-      z-index: 999;
+      z-index: 2;
     }
 
     .dock .icon-box {
       width: 48px;
       height: 48px;
       font-size: 24px;
+    }
+
+    #app-screen {
+      display: none;
+      position: fixed;
+      top: 24px;
+      left: 0;
+      width: 100vw;
+      height: calc(100vh - 24px);
+      background: #fff;
+      z-index: 5;
+      flex-direction: column;
+    }
+
+    #app-header {
+      padding: 12px 16px;
+      background: #f2f2f7;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    #close-btn {
+      font-size: 24px;
+      cursor: pointer;
+      user-select: none;
+      color: #888;
+    }
+
+    #app-content {
+      padding: 16px;
+      font-size: 16px;
     }
 
     @media (max-width: 400px) {
@@ -87,23 +122,23 @@
   </div>
 
   <div class="grid">
-    <div class="icon">
+    <div class="icon" onclick="openApp('Messages')">
       <div class="icon-box">💬</div>
       <div>Messages</div>
     </div>
-    <div class="icon">
+    <div class="icon" onclick="openApp('Block Blast')">
       <div class="icon-box">🧱</div>
       <div>Block Blast</div>
     </div>
-    <div class="icon">
+    <div class="icon" onclick="openApp('Browser')">
       <div class="icon-box">🌐</div>
       <div>Browser</div>
     </div>
-    <div class="icon">
+    <div class="icon" onclick="openApp('Settings')">
       <div class="icon-box">⚙️</div>
       <div>Settings</div>
     </div>
-    <div class="icon">
+    <div class="icon" onclick="openApp('Procreate Portable')">
       <div class="icon-box">🎨</div>
       <div>Procreate<br>Portable</div>
     </div>
@@ -118,3 +153,48 @@
     </div>
     <div class="icon">
       <div class="icon-box">🎵</div>
+    </div>
+    <div class="icon">
+      <div class="icon-box">📧</div>
+    </div>
+  </div>
+
+  <div id="app-screen">
+    <div id="app-header">
+      <span id="app-title">App</span>
+      <span id="close-btn" onclick="closeApp()">×</span>
+    </div>
+    <div id="app-content"></div>
+  </div>
+
+  <script>
+    function openApp(name) {
+      const appScreen = document.getElementById("app-screen");
+      const title = document.getElementById("app-title");
+      const content = document.getElementById("app-content");
+
+      title.textContent = name;
+      if (name === "Messages") {
+        content.innerHTML = "💬 This is the Messages app.";
+      } else if (name === "Block Blast") {
+        content.innerHTML = "🧱 This is the fake Block Blast game!";
+      } else if (name === "Browser") {
+        content.innerHTML = "🌐 Fake browser interface!";
+      } else if (name === "Settings") {
+        content.innerHTML = "⚙️ Fake settings menu with toggle switches!";
+      } else if (name === "Procreate Portable") {
+        content.innerHTML = "🎨 Mini drawing simulator coming soon!";
+      } else {
+        content.innerHTML = "🧠 Unknown app.";
+      }
+
+      appScreen.style.display = "flex";
+    }
+
+    function closeApp() {
+      document.getElementById("app-screen").style.display = "none";
+    }
+  </script>
+
+</body>
+</html>
