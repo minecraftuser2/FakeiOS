@@ -1,185 +1,45 @@
 <!DOCTYPE html>
-<html lang="en" >
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Fake iOS Home Screen with Text Browser</title>
+  <title>Fake iOS</title>
   <style>
-    /* ... your existing CSS unchanged ... */
-  </style>
-</head>
-<body>
-
-  <div id="status-bar">
-    <div class="left">📶 9:41 AM</div>
-    <div class="right">🔋 100%</div>
-  </div>
-
-  <div id="home-screen">
-    <div class="icon" onclick="openApp('Messages')">
-      <div class="icon-img"></div>
-      <div class="icon-label">Messages</div>
-    </div>
-    <div class="icon" onclick="openApp('Block Blast')">
-      <div class="icon-img"></div>
-      <div class="icon-label">Block Blast</div>
-    </div>
-    <div class="icon" onclick="openApp('Browser')">
-      <div class="icon-img"></div>
-      <div class="icon-label">Browser</div>
-    </div>
-    <div class="icon" onclick="openApp('Settings')">
-      <div class="icon-img"></div>
-      <div class="icon-label">Settings</div>
-    </div>
-
-    <!-- MOVED Procreate OUTSIDE Settings icon -->
-    <div class="icon" onclick="openApp('Procreate Portable')">
-      <div class="icon-img" style="background: linear-gradient(135deg, #3b82f6, #9333ea);"></div>
-      <div class="icon-label">Procreate<br>Portable</div>
-    </div>
-  </div>
-
-  <div id="dock">
-    <div class="icon">Phone</div>
-    <div class="icon">Safari</div>
-    <div class="icon">Music</div>
-    <div class="icon">Mail</div>
-  </div>
-
-  <div id="app-fullscreen" role="application" aria-label="App window">
-    <div id="app-header">
-      <span id="app-title"></span>
-      <span id="app-close-btn" onclick="closeApp()">×</span>
-    </div>
-    <div id="app-content"></div>
-  </div>
-
-<script>
-  const appFull = document.getElementById('app-fullscreen');
-  const appTitle = document.getElementById('app-title');
-  const appContent = document.getElementById('app-content');
-
-  function openApp(name) {
-    appTitle.textContent = name;
-    appContent.innerHTML = '';
-
-    if (name === 'Messages') {
-      appContent.innerHTML = `
-        <input type="text" id="msgInput" placeholder="Type a message" style="width:100%;font-size:18px;padding:10px;"/>
-        <button onclick="sendMessage()" style="margin-top:10px;padding:10px 20px;font-size:16px;">Send</button>
-        <div id="msgLog" style="margin-top:15px;max-height:300px;overflow-y:auto;"></div>
-      `;
-    } else if (name === 'Block Blast') {
-      appContent.innerHTML = `<p style="font-size:18px;">💥 Boom! Fake block blasted!</p>`;
-    } else if (name === 'Browser') {
-      appContent.innerHTML = `
-        <div id="browser-controls">
-          <input type="text" id="url-input" placeholder="Enter URL (e.g. example.com)" />
-          <button class="browser-btn" onclick="goToUrl()">Go</button>
-        </div>
-        <div id="browser-content">Enter a URL and hit Go to fetch raw HTML here.</div>
-      `;
-    } else if (name === 'Settings') {
-      appContent.innerHTML = `
-        <p style="font-size:18px;">This is a fake settings screen.</p>
-        <label><input type="checkbox" disabled /> Dark Mode (locked)</label><br/>
-        <label><input type="checkbox" /> Enable Prank Mode</label>
-      `;
-    } else if (name === 'Procreate Portable') {
-      appContent.innerHTML = `
-        <canvas id="drawCanvas" width="320" height="360" style="border:1px solid #ccc;touch-action:none;display:block;margin:12px auto;background:#fff;border-radius:12px;"></canvas>
-        <div style="text-align:center;">
-          <input type="color" id="colorPicker" value="#000000" />
-          <button onclick="clearCanvas()" style="margin-left:10px;padding:6px 12px;font-size:14px;">Clear</button>
-        </div>
-      `;
-      enableDrawing();
-    } else {
-      appContent.innerHTML = `<p style="font-size:18px;">Welcome to ${name}</p>`;
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to bottom, #dce4f7, #f4f1ee);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #000;
     }
 
-    appFull.style.display = 'flex';
-  }
-
-  function closeApp() {
-    appFull.style.display = 'none';
-  }
-
-  function sendMessage() {
-    const input = document.getElementById('msgInput');
-    const log = document.getElementById('msgLog');
-    if (input.value.trim() !== '') {
-      log.innerHTML += `<div>📩 You: ${input.value.trim()}</div>`;
-      input.value = '';
-      log.scrollTop = log.scrollHeight;
-    }
-  }
-
-  async function goToUrl() {
-    const urlInput = document.getElementById('url-input');
-    const browserContent = document.getElementById('browser-content');
-    let url = urlInput.value.trim();
-    if (!url) return;
-
-    if (!url.match(/^https?:\/\//)) {
-      url = 'https://' + url;
+    .status-bar {
+      height: 24px;
+      padding: 0 12px;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8f8f8;
+      border-bottom: 1px solid #ccc;
     }
 
-    browserContent.textContent = 'Loading...';
-
-    try {
-      const response = await fetch(url, {mode: 'cors'});
-      if (!response.ok) {
-        browserContent.textContent = `Error: HTTP status ${response.status}`;
-        return;
-      }
-      const text = await response.text();
-
-      browserContent.textContent = text.slice(0, 1000) + (text.length > 1000 ? '\n\n... (truncated)' : '');
-    } catch (e) {
-      browserContent.textContent = 'Fetch failed: ' + e.message;
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 72px);
+      justify-content: center;
+      gap: 24px 20px;
+      padding: 40px 10px 120px;
     }
-  }
-</script>
 
-<script>
-  let ctx, drawing = false, color = '#000';
+    .icon {
+      text-align: center;
+      font-size: 12px;
+      color: #111;
+    }
 
-  function enableDrawing() {
-    const canvas = document.getElementById('drawCanvas');
-    ctx = canvas.getContext('2d');
-    ctx.lineWidth = 3;
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    color = document.getElementById('colorPicker').value;
-
-    canvas.addEventListener('pointerdown', e => {
-      drawing = true;
-      ctx.beginPath();
-      ctx.moveTo(e.offsetX, e.offsetY);
-    });
-
-    canvas.addEventListener('pointermove', e => {
-      if (!drawing) return;
-      ctx.strokeStyle = color;
-      ctx.lineTo(e.offsetX, e.offsetY);
-      ctx.stroke();
-    });
-
-    canvas.addEventListener('pointerup', () => drawing = false);
-    canvas.addEventListener('pointerleave', () => drawing = false);
-
-    document.getElementById('colorPicker').addEventListener('input', e => {
-      color = e.target.value;
-    });
-  }
-
-  function clearCanvas() {
-    const canvas = document.getElementById('drawCanvas');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
-</script>
-
-</body>
-</html>
+    .icon img {
+      width: 60px;
+      height: 60px;
+      border-radius: 15px;
+      box-shadow: 0
