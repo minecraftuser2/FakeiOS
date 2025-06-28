@@ -2,25 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Fake iOS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fake iOS - No JS</title>
   <style>
     body {
       margin: 0;
-      padding: 0;
-      background: linear-gradient(to bottom, #dce4f7, #f4f1ee);
+      background: linear-gradient(to bottom, #e5e9f0, #f8f8f8);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      color: #000;
+      user-select: none;
+      overflow: hidden;
     }
 
     .status-bar {
       height: 24px;
-      padding: 0 12px;
       font-size: 12px;
+      padding: 0 12px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: #f8f8f8;
+      background: #f4f4f4;
       border-bottom: 1px solid #ccc;
     }
 
@@ -28,18 +28,93 @@
       display: grid;
       grid-template-columns: repeat(4, 72px);
       justify-content: center;
-      gap: 24px 20px;
-      padding: 40px 10px 120px;
+      gap: 24px 16px;
+      padding: 36px 10px 120px;
     }
 
     .icon {
       text-align: center;
       font-size: 12px;
-      color: #111;
+      color: #000;
     }
 
-    .icon img {
+    .icon-box {
       width: 60px;
       height: 60px;
-      border-radius: 15px;
-      box-shadow: 0
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin: 0 auto 5px;
+    }
+
+    .dock {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      border-radius: 30px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      padding: 12px 24px;
+      display: flex;
+      gap: 20px;
+      z-index: 999;
+    }
+
+    .dock .icon-box {
+      width: 48px;
+      height: 48px;
+      font-size: 24px;
+    }
+
+    @media (max-width: 400px) {
+      .grid {
+        grid-template-columns: repeat(3, 72px);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="status-bar">
+    <div>📶 9:41 AM</div>
+    <div>🔋 100%</div>
+  </div>
+
+  <div class="grid">
+    <div class="icon">
+      <div class="icon-box">💬</div>
+      <div>Messages</div>
+    </div>
+    <div class="icon">
+      <div class="icon-box">🧱</div>
+      <div>Block Blast</div>
+    </div>
+    <div class="icon">
+      <div class="icon-box">🌐</div>
+      <div>Browser</div>
+    </div>
+    <div class="icon">
+      <div class="icon-box">⚙️</div>
+      <div>Settings</div>
+    </div>
+    <div class="icon">
+      <div class="icon-box">🎨</div>
+      <div>Procreate<br>Portable</div>
+    </div>
+  </div>
+
+  <div class="dock">
+    <div class="icon">
+      <div class="icon-box">📞</div>
+    </div>
+    <div class="icon">
+      <div class="icon-box">🧭</div>
+    </div>
+    <div class="icon">
+      <div class="icon-box">🎵</div>
