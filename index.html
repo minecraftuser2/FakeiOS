@@ -105,6 +105,32 @@
     #app-content {
       padding: 16px;
       font-size: 16px;
+      flex: 1;
+      overflow: auto;
+    }
+
+    canvas {
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      display: block;
+      margin: 12px auto;
+      touch-action: none;
+    }
+
+    label.switch {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 10px 0;
+      padding: 8px;
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
     }
 
     @media (max-width: 400px) {
@@ -145,18 +171,10 @@
   </div>
 
   <div class="dock">
-    <div class="icon">
-      <div class="icon-box">📞</div>
-    </div>
-    <div class="icon">
-      <div class="icon-box">🧭</div>
-    </div>
-    <div class="icon">
-      <div class="icon-box">🎵</div>
-    </div>
-    <div class="icon">
-      <div class="icon-box">📧</div>
-    </div>
+    <div class="icon"><div class="icon-box">📞</div></div>
+    <div class="icon"><div class="icon-box">🧭</div></div>
+    <div class="icon"><div class="icon-box">🎵</div></div>
+    <div class="icon"><div class="icon-box">📧</div></div>
   </div>
 
   <div id="app-screen">
@@ -169,30 +187,78 @@
 
   <script>
     function openApp(name) {
-      const appScreen = document.getElementById("app-screen");
+      const app = document.getElementById("app-screen");
       const title = document.getElementById("app-title");
       const content = document.getElementById("app-content");
-
       title.textContent = name;
+      content.innerHTML = "";
+
       if (name === "Messages") {
         content.innerHTML = "💬 This is the Messages app.";
       } else if (name === "Block Blast") {
         content.innerHTML = "🧱 This is the fake Block Blast game!";
       } else if (name === "Browser") {
-        content.innerHTML = "🌐 Fake browser interface!";
+        content.innerHTML = `
+          <iframe src="https://example.com" title="Fake browser"></iframe>
+        `;
       } else if (name === "Settings") {
-        content.innerHTML = "⚙️ Fake settings menu with toggle switches!";
+        content.innerHTML = `
+          <label class="switch">Airplane Mode <input type="checkbox" /></label>
+          <label class="switch">Wi-Fi <input type="checkbox" checked /></label>
+          <label class="switch">Bluetooth <input type="checkbox" /></label>
+          <label class="switch">Dark Mode <input type="checkbox" /></label>
+        `;
       } else if (name === "Procreate Portable") {
-        content.innerHTML = "🎨 Mini drawing simulator coming soon!";
+        content.innerHTML = `
+          <canvas id="drawCanvas" width="320" height="360"></canvas>
+          <div style="text-align:center;">
+            <input type="color" id="colorPicker" value="#000000" />
+            <button onclick="clearCanvas()" style="margin-left:10px;padding:6px 12px;font-size:14px;">Clear</button>
+          </div>
+        `;
+        setTimeout(enableDrawing, 100);
       } else {
-        content.innerHTML = "🧠 Unknown app.";
+        content.innerHTML = `<p>🧠 Unknown app.</p>`;
       }
 
-      appScreen.style.display = "flex";
+      app.style.display = "flex";
     }
 
     function closeApp() {
       document.getElementById("app-screen").style.display = "none";
+    }
+
+    function enableDrawing() {
+      const canvas = document.getElementById('drawCanvas');
+      const ctx = canvas.getContext('2d');
+      let drawing = false;
+      let color = document.getElementById('colorPicker').value;
+
+      canvas.addEventListener('pointerdown', e => {
+        drawing = true;
+        ctx.beginPath();
+        ctx.moveTo(e.offsetX, e.offsetY);
+      });
+
+      canvas.addEventListener('pointermove', e => {
+        if (!drawing) return;
+        ctx.strokeStyle = color;
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+      });
+
+      canvas.addEventListener('pointerup', () => drawing = false);
+      canvas.addEventListener('pointerleave', () => drawing = false);
+
+      document.getElementById('colorPicker').addEventListener('input', e => {
+        color = e.target.value;
+      });
+    }
+
+    function clearCanvas() {
+      const canvas = document.getElementById('drawCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
   </script>
 
