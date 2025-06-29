@@ -29,6 +29,7 @@
       justify-content: center;
       gap: 24px 16px;
       padding: 36px 10px 120px;
+      transition: all 0.3s ease;
     }
 
     .icon {
@@ -64,6 +65,7 @@
       display: flex;
       gap: 20px;
       z-index: 2;
+      transition: all 0.3s ease;
     }
 
     .dock .icon-box {
@@ -137,9 +139,43 @@
       border-radius: 0 0 16px 16px;
     }
 
+    /* Vertical mode styles */
+    body.vertical-mode .grid {
+      grid-template-columns: 1fr !important;
+      max-width: 200px;
+      margin: 0 auto;
+      gap: 16px 0;
+    }
+
+    body.vertical-mode .dock {
+      position: fixed;
+      top: 60px;
+      left: 0;
+      width: 72px;
+      height: calc(100vh - 60px);
+      border-radius: 0 20px 20px 0;
+      flex-direction: column;
+      padding: 20px 0;
+      gap: 24px;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      transform: none;
+    }
+
+    /* Scrollbar for app-content */
+    #app-content::-webkit-scrollbar {
+      width: 8px;
+    }
+    #app-content::-webkit-scrollbar-thumb {
+      background-color: rgba(0,0,0,0.2);
+      border-radius: 4px;
+    }
+
     @media (max-width: 400px) {
       .grid {
         grid-template-columns: repeat(3, 72px);
+      }
+      body.vertical-mode .grid {
+        max-width: 100%;
       }
     }
   </style>
@@ -241,7 +277,36 @@
           <label class="switch">Wi-Fi <input type="checkbox" checked /></label>
           <label class="switch">Bluetooth <input type="checkbox" /></label>
           <label class="switch">Dark Mode <input type="checkbox" /></label>
+          <button id="toggleOrientationBtn" style="
+            margin: 20px 16px;
+            padding: 10px;
+            width: calc(100% - 32px);
+            background: #007aff;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+          ">Switch to Vertical Mode</button>
         `;
+
+        // Add event listener after DOM is updated
+        setTimeout(() => {
+          const toggleBtn = document.getElementById('toggleOrientationBtn');
+          toggleBtn.addEventListener('click', () => {
+            document.body.classList.toggle('vertical-mode');
+            if(document.body.classList.contains('vertical-mode')){
+              toggleBtn.textContent = "Switch to Horizontal Mode";
+            } else {
+              toggleBtn.textContent = "Switch to Vertical Mode";
+            }
+          });
+
+          // Set initial button text based on current mode
+          const toggleBtnInit = document.getElementById('toggleOrientationBtn');
+          toggleBtnInit.textContent = document.body.classList.contains('vertical-mode') ? "Switch to Horizontal Mode" : "Switch to Vertical Mode";
+        }, 50);
       } else if (name === "Procreate Portable") {
         content.innerHTML = `
           <canvas id="drawCanvas" width="320" height="360"></canvas>
@@ -256,13 +321,15 @@
           <div style="padding: 12px; display: flex; flex-direction: column; gap: 16px;">
             <div style="font-weight: bold; font-size: 18px;">Recommended</div>
 
-            <div class="yt-video" onclick="loadVideo('https://www.youtube.com/embed/WLKJ8lBGI2E')">
+            <div class="yt-video" onclick="loadVideo('https://www.youtube.com/embed/WLKJ8lBGI2E')"
+                 style="cursor:pointer;">
               <img src="https://img.youtube.com/vi/WLKJ8lBGI2E/0.jpg" style="width: 100%; border-radius: 12px;" />
               <div style="margin-top: 8px; font-weight: 500;">My Video</div>
               <div style="font-size: 12px; color: gray;">Me</div>
             </div>
 
-            <div class="yt-video" onclick="loadVideo('https://www.youtube.com/embed/dQw4w9WgXcQ')">
+            <div class="yt-video" onclick="loadVideo('https://www.youtube.com/embed/dQw4w9WgXcQ')"
+                 style="cursor:pointer;">
               <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg" style="width: 100%; border-radius: 12px;" />
               <div style="margin-top: 8px; font-weight: 500;">Never Gonna Give You Up</div>
               <div style="font-size: 12px; color: gray;">Rick Astley</div>
