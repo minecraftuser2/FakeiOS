@@ -97,6 +97,7 @@
       align-items: center;
       font-weight: bold;
       font-size: 18px;
+      user-select: none;
     }
 
     #close-btn {
@@ -110,7 +111,7 @@
       padding: 0;
       font-size: 16px;
       flex: 1;
-      overflow-y: auto;
+      overflow: auto;
       display: flex;
       flex-direction: column;
     }
@@ -121,6 +122,7 @@
       display: block;
       margin: 12px auto;
       touch-action: none;
+      background: #000;
     }
 
     label.switch {
@@ -182,54 +184,74 @@
     }
 
     /* Geometry Dash styles */
-    .gd-level-list {
-      padding: 12px 16px;
+    #gd-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    #gd-levels {
       display: flex;
       flex-direction: column;
       gap: 12px;
+      margin-bottom: 12px;
     }
+
     .gd-level {
+      background: #007aff;
+      color: white;
       padding: 12px;
-      background: #f2f2f7;
       border-radius: 12px;
       cursor: pointer;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
       user-select: none;
       font-weight: 600;
-      font-size: 16px;
+      text-align: center;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
       transition: background 0.2s ease;
     }
     .gd-level:hover {
-      background: #d0d4de;
+      background: #005bb5;
     }
-    .gd-level-current {
+
+    #gd-canvas {
+      background: #000;
+      border-radius: 12px;
+      width: 100%;
+      height: 300px;
+      display: block;
+      touch-action: none;
+    }
+
+    #gd-controls {
+      margin-top: 12px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    #gd-controls button {
+      padding: 10px 20px;
+      border-radius: 12px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
       background: #007aff;
       color: white;
+      user-select: none;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+      transition: background 0.2s ease;
     }
-    .gd-game-area {
-      margin: 16px;
-      padding: 20px;
-      background: #f7f7f7;
-      border-radius: 12px;
+    #gd-controls button:hover {
+      background: #005bb5;
+    }
+
+    #gd-score {
+      margin-top: 12px;
       text-align: center;
       font-weight: 700;
-      font-size: 20px;
-      user-select: none;
-    }
-    .gd-button {
-      margin-top: 16px;
-      padding: 10px 20px;
-      background: #007aff;
-      border: none;
-      color: white;
-      font-weight: 600;
-      border-radius: 12px;
-      cursor: pointer;
-      user-select: none;
-    }
-    .gd-button:disabled {
-      background: #a0a0a0;
-      cursor: not-allowed;
+      font-size: 18px;
+      color: #333;
     }
   </style>
 </head>
@@ -287,243 +309,9 @@
   </div>
 
   <script>
+    // Basic apps open logic
     function openApp(name) {
       const app = document.getElementById("app-screen");
       const title = document.getElementById("app-title");
       const content = document.getElementById("app-content");
-      title.textContent = name;
-      content.innerHTML = "";
-
-      if (name === "Messages") {
-        content.innerHTML = "💬 This is the Messages app.";
-      } else if (name === "Block Blast") {
-        content.innerHTML = "🧱 This is the fake Block Blast game!";
-      } else if (name === "Browser") {
-        content.innerHTML = `
-          <div style="display:flex; padding:8px 12px; gap:8px; border-bottom:1px solid #ccc; background:#f2f2f7;">
-            <input id="addressInput" type="text" placeholder="Enter URL or search" 
-                   style="flex:1; border-radius:12px; border:1px solid #ccc; padding:6px 12px; font-size:14px;" />
-            <button id="goButton" style="
-              background:#007aff; color:#fff; border:none; border-radius:12px; padding:6px 14px; font-weight:600;
-              cursor:pointer;
-            ">Go</button>
-          </div>
-          <iframe id="browserFrame" src="https://example.com" style="width:100%; flex:1; border:none; border-radius: 0 0 16px 16px;"></iframe>
-        `;
-
-        const input = content.querySelector('#addressInput');
-        const button = content.querySelector('#goButton');
-        const iframe = content.querySelector('#browserFrame');
-
-        function loadURL() {
-          let url = input.value.trim();
-          if (!url) return;
-          if (!url.startsWith('http://') && !url.startsWith('https://')) {
-            url = 'https://' + url;
-          }
-          iframe.src = url;
-        }
-
-        button.addEventListener('click', loadURL);
-        input.addEventListener('keydown', e => {
-          if (e.key === 'Enter') loadURL();
-        });
-      } else if (name === "Settings") {
-        content.innerHTML = `
-          <label class="switch">Airplane Mode <input type="checkbox" /></label>
-          <label class="switch">Wi-Fi <input type="checkbox" checked /></label>
-          <label class="switch">Bluetooth <input type="checkbox" /></label>
-          <label class="switch">Dark Mode <input type="checkbox" /></label>
-          <button id="toggleOrientationBtn" style="
-            margin: 20px 16px;
-            padding: 10px;
-            width: calc(100% - 32px);
-            background: #007aff;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 16px;
-          ">Switch to Vertical Mode</button>
-        `;
-
-        // Add event listener after DOM is updated
-        setTimeout(() => {
-          const toggleBtn = document.getElementById('toggleOrientationBtn');
-          toggleBtn.addEventListener('click', () => {
-            document.body.classList.toggle('vertical-mode');
-            if(document.body.classList.contains('vertical-mode')){
-              toggleBtn.textContent = "Switch to Horizontal Mode";
-            } else {
-              toggleBtn.textContent = "Switch to Vertical Mode";
-            }
-          });
-
-          // Set initial button text based on current mode
-          const toggleBtnInit = document.getElementById('toggleOrientationBtn');
-          toggleBtnInit.textContent = document.body.classList.contains('vertical-mode') ? "Switch to Horizontal Mode" : "Switch to Vertical Mode";
-        }, 50);
-      } else if (name === "Procreate Portable") {
-        content.innerHTML = `
-          <canvas id="drawCanvas" width="320" height="360"></canvas>
-          <div style="text-align:center; margin-top: 8px;">
-            <input type="color" id="colorPicker" value="#000000" />
-            <button onclick="clearCanvas()" style="margin-left:10px;padding:6px 12px;font-size:14px;">Clear</button>
-          </div>
-        `;
-        setTimeout(enableDrawing, 100);
-      } else if (name === "YouTube") {
-        content.innerHTML = `
-          <div style="padding: 12px; display: flex; flex-direction: column; gap: 16px;">
-            <div style="font-weight: bold; font-size: 18px;">Recommended</div>
-            <div class="yt-video" onclick="loadVideo('https://www.youtube.com/embed/WLKJ8lBGI2E')"
-                 style="cursor:pointer;">
-              <img src="https://img.youtube.com/vi/WLKJ8lBGI2E/0.jpg" style="width: 100%; border-radius: 12px;" />
-              <div style="margin-top: 8px; font-weight: 500;">My Video</div>
-              <div style="font-size: 12px; color: gray;">Me</div>
-            </div>
-            <div class="yt-video" onclick="loadVideo('https://www.youtube.com/embed/dQw4w9WgXcQ')"
-                 style="cursor:pointer;">
-              <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg" style="width: 100%; border-radius: 12px;" />
-              <div style="margin-top: 8px; font-weight: 500;">Never Gonna Give You Up</div>
-              <div style="font-size: 12px; color: gray;">Rick Astley</div>
-            </div>
-          </div>
-        `;
-      } else if (name === "Geometry Dash") {
-        showGeometryDash();
-      } else {
-        content.innerHTML = `<p>🧠 Unknown app.</p>`;
-      }
-
-      app.style.display = "flex";
-      app.style.flexDirection = "column";
-    }
-
-    function closeApp() {
-      document.getElementById("app-screen").style.display = "none";
-    }
-
-    // Drawing app code
-    function enableDrawing() {
-      const canvas = document.getElementById('drawCanvas');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      let drawing = false;
-      let color = document.getElementById('colorPicker').value;
-
-      canvas.addEventListener('pointerdown', e => {
-        drawing = true;
-        ctx.beginPath();
-        ctx.moveTo(e.offsetX, e.offsetY);
-      });
-
-      canvas.addEventListener('pointermove', e => {
-        if (!drawing) return;
-        ctx.strokeStyle = color;
-        ctx.lineTo(e.offsetX, e.offsetY);
-        ctx.stroke();
-      });
-
-      canvas.addEventListener('pointerup', () => drawing = false);
-      canvas.addEventListener('pointerleave', () => drawing = false);
-
-      document.getElementById('colorPicker').addEventListener('input', e => {
-        color = e.target.value;
-      });
-    }
-
-    function clearCanvas() {
-      const canvas = document.getElementById('drawCanvas');
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
-    // YouTube video loader
-    function loadVideo(url) {
-      const content = document.getElementById("app-content");
-      content.innerHTML = `
-        <div style="padding: 12px;">
-          <button onclick="openApp('YouTube')" style="
-            padding: 6px 12px;
-            background: #ff0000;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-weight: bold;
-            margin-bottom: 12px;
-            cursor: pointer;
-          ">← Back</button>
-          <iframe width="100%" height="200" src="${url}" frameborder="0" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-            allowfullscreen>
-          </iframe>
-        </div>
-      `;
-    }
-
-    // Geometry Dash App
-    const gdLevels = [
-      { id: 1, name: "Stereo Madness" },
-      { id: 2, name: "Dash" },
-      { id: 3, name: "Slaughterhouse" }
-    ];
-
-    let gdCurrentLevelId = null;
-
-    function showGeometryDash() {
-      const content = document.getElementById("app-content");
-      content.innerHTML = `
-        <div class="gd-level-list">
-          ${gdLevels.map(level => `
-            <div class="gd-level${gdCurrentLevelId === level.id ? ' gd-level-current' : ''}" 
-                 data-id="${level.id}">
-              ${level.name}
-            </div>
-          `).join('')}
-        </div>
-        <div class="gd-game-area" id="gdGameArea">
-          ${gdCurrentLevelId === null ? 'Select a level to play.' : `Playing: ${gdLevels.find(l => l.id === gdCurrentLevelId).name}`}
-        </div>
-        <button class="gd-button" id="gdPlayBtn" ${gdCurrentLevelId === null ? 'disabled' : ''}>Play Level</button>
-      `;
-
-      // Add click handlers to levels
-      content.querySelectorAll('.gd-level').forEach(el => {
-        el.onclick = () => {
-          gdCurrentLevelId = parseInt(el.getAttribute('data-id'));
-          showGeometryDash();
-        };
-      });
-
-      // Play button
-      const playBtn = document.getElementById('gdPlayBtn');
-      playBtn.onclick = () => {
-        startGDLevel(gdCurrentLevelId);
-      };
-    }
-
-    function startGDLevel(levelId) {
-      const content = document.getElementById("app-content");
-      const level = gdLevels.find(l => l.id === levelId);
-      if (!level) return;
-
-      // Very basic "gameplay" placeholder
-      content.innerHTML = `
-        <div style="padding: 16px; text-align:center;">
-          <h2>Geometry Dash: ${level.name}</h2>
-          <p>Get ready to dash!</p>
-          <button id="gdBackBtn" class="gd-button">Back to Levels</button>
-        </div>
-      `;
-
-      document.getElementById('gdBackBtn').onclick = () => {
-        showGeometryDash();
-      };
-    }
-  </script>
-
-</body>
-</html>
+      title.textCon
