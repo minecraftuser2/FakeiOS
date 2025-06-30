@@ -37,6 +37,7 @@
       font-size: 12px;
       color: #000;
       cursor: pointer;
+      user-select: none;
     }
 
     .icon-box {
@@ -84,6 +85,7 @@
       background: #fff;
       z-index: 5;
       flex-direction: column;
+      overflow: hidden;
     }
 
     #app-header {
@@ -108,7 +110,7 @@
       padding: 0;
       font-size: 16px;
       flex: 1;
-      overflow: auto;
+      overflow-y: auto;
       display: flex;
       flex-direction: column;
     }
@@ -178,6 +180,57 @@
         max-width: 100%;
       }
     }
+
+    /* Geometry Dash styles */
+    .gd-level-list {
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .gd-level {
+      padding: 12px;
+      background: #f2f2f7;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+      user-select: none;
+      font-weight: 600;
+      font-size: 16px;
+      transition: background 0.2s ease;
+    }
+    .gd-level:hover {
+      background: #d0d4de;
+    }
+    .gd-level-current {
+      background: #007aff;
+      color: white;
+    }
+    .gd-game-area {
+      margin: 16px;
+      padding: 20px;
+      background: #f7f7f7;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 20px;
+      user-select: none;
+    }
+    .gd-button {
+      margin-top: 16px;
+      padding: 10px 20px;
+      background: #007aff;
+      border: none;
+      color: white;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .gd-button:disabled {
+      background: #a0a0a0;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -211,6 +264,10 @@
     <div class="icon" onclick="openApp('YouTube')">
       <div class="icon-box">🎬</div>
       <div>YouTube</div>
+    </div>
+    <div class="icon" onclick="openApp('Geometry Dash')">
+      <div class="icon-box">🎮</div>
+      <div>Geometry Dash</div>
     </div>
   </div>
 
@@ -320,14 +377,12 @@
         content.innerHTML = `
           <div style="padding: 12px; display: flex; flex-direction: column; gap: 16px;">
             <div style="font-weight: bold; font-size: 18px;">Recommended</div>
-
             <div class="yt-video" onclick="loadVideo('https://www.youtube.com/embed/WLKJ8lBGI2E')"
                  style="cursor:pointer;">
               <img src="https://img.youtube.com/vi/WLKJ8lBGI2E/0.jpg" style="width: 100%; border-radius: 12px;" />
               <div style="margin-top: 8px; font-weight: 500;">My Video</div>
               <div style="font-size: 12px; color: gray;">Me</div>
             </div>
-
             <div class="yt-video" onclick="loadVideo('https://www.youtube.com/embed/dQw4w9WgXcQ')"
                  style="cursor:pointer;">
               <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg" style="width: 100%; border-radius: 12px;" />
@@ -336,6 +391,8 @@
             </div>
           </div>
         `;
+      } else if (name === "Geometry Dash") {
+        showGeometryDash();
       } else {
         content.innerHTML = `<p>🧠 Unknown app.</p>`;
       }
@@ -348,8 +405,10 @@
       document.getElementById("app-screen").style.display = "none";
     }
 
+    // Drawing app code
     function enableDrawing() {
       const canvas = document.getElementById('drawCanvas');
+      if (!canvas) return;
       const ctx = canvas.getContext('2d');
       let drawing = false;
       let color = document.getElementById('colorPicker').value;
@@ -377,10 +436,12 @@
 
     function clearCanvas() {
       const canvas = document.getElementById('drawCanvas');
+      if (!canvas) return;
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
+    // YouTube video loader
     function loadVideo(url) {
       const content = document.getElementById("app-content");
       content.innerHTML = `
@@ -401,6 +462,66 @@
           </iframe>
         </div>
       `;
+    }
+
+    // Geometry Dash App
+    const gdLevels = [
+      { id: 1, name: "Stereo Madness" },
+      { id: 2, name: "Dash" },
+      { id: 3, name: "Slaughterhouse" }
+    ];
+
+    let gdCurrentLevelId = null;
+
+    function showGeometryDash() {
+      const content = document.getElementById("app-content");
+      content.innerHTML = `
+        <div class="gd-level-list">
+          ${gdLevels.map(level => `
+            <div class="gd-level${gdCurrentLevelId === level.id ? ' gd-level-current' : ''}" 
+                 data-id="${level.id}">
+              ${level.name}
+            </div>
+          `).join('')}
+        </div>
+        <div class="gd-game-area" id="gdGameArea">
+          ${gdCurrentLevelId === null ? 'Select a level to play.' : `Playing: ${gdLevels.find(l => l.id === gdCurrentLevelId).name}`}
+        </div>
+        <button class="gd-button" id="gdPlayBtn" ${gdCurrentLevelId === null ? 'disabled' : ''}>Play Level</button>
+      `;
+
+      // Add click handlers to levels
+      content.querySelectorAll('.gd-level').forEach(el => {
+        el.onclick = () => {
+          gdCurrentLevelId = parseInt(el.getAttribute('data-id'));
+          showGeometryDash();
+        };
+      });
+
+      // Play button
+      const playBtn = document.getElementById('gdPlayBtn');
+      playBtn.onclick = () => {
+        startGDLevel(gdCurrentLevelId);
+      };
+    }
+
+    function startGDLevel(levelId) {
+      const content = document.getElementById("app-content");
+      const level = gdLevels.find(l => l.id === levelId);
+      if (!level) return;
+
+      // Very basic "gameplay" placeholder
+      content.innerHTML = `
+        <div style="padding: 16px; text-align:center;">
+          <h2>Geometry Dash: ${level.name}</h2>
+          <p>Get ready to dash!</p>
+          <button id="gdBackBtn" class="gd-button">Back to Levels</button>
+        </div>
+      `;
+
+      document.getElementById('gdBackBtn').onclick = () => {
+        showGeometryDash();
+      };
     }
   </script>
 
