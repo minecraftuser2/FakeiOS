@@ -2,77 +2,257 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fake iOS</title>
   <style>
-    /* --- Your existing styles --- */
-
     body {
       margin: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: linear-gradient(to bottom, #e0e5f0, #f9f9fb);
       overflow: hidden;
     }
-    /* ... existing styles here (status-bar, grid, icon-box, dock, etc.) ... */
 
-    /* Added styles for Brookhaven mini-game */
-
-    #brookhaven-container {
-      position: relative;
-      width: 100%;
-      height: 100%;
-      background: #cceeff;
+    .status-bar {
+      height: 24px;
+      background: #f4f4f4;
+      font-size: 12px;
+      padding: 0 12px;
       display: flex;
-      flex-direction: column;
+      justify-content: space-between;
       align-items: center;
-      padding: 10px;
-      box-sizing: border-box;
+      border-bottom: 1px solid #ccc;
     }
-    #bh-game {
-      border: 2px solid #007aff;
-      background: #87ceeb;
-      border-radius: 16px;
-      touch-action: none;
-      image-rendering: pixelated;
-    }
-    #bh-instructions {
-      margin: 12px 0 8px;
-      font-weight: 600;
-      font-size: 16px;
-      color: #005bb5;
-    }
-    #bh-objects {
-      margin-top: 10px;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 72px);
       justify-content: center;
+      gap: 24px 16px;
+      padding: 36px 10px 120px;
+      transition: all 0.3s ease;
     }
-    .bh-object {
-      background: #fff;
-      border: 1px solid #007aff;
-      border-radius: 8px;
-      padding: 6px 12px;
+
+    .icon {
+      text-align: center;
+      font-size: 12px;
+      color: #000;
       cursor: pointer;
       user-select: none;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      font-weight: 600;
-      color: #007aff;
-      transition: background 0.2s ease;
-    }
-    .bh-object:hover {
-      background: #007aff;
-      color: white;
-    }
-    #bh-message {
-      margin-top: 12px;
-      font-size: 14px;
-      font-style: italic;
-      color: #004080;
-      min-height: 20px;
-      text-align: center;
     }
 
+    .icon-box {
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin: 0 auto 5px;
+    }
+
+    .dock {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      border-radius: 30px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      padding: 12px 24px;
+      display: flex;
+      gap: 20px;
+      z-index: 2;
+      transition: all 0.3s ease;
+    }
+
+    .dock .icon-box {
+      width: 48px;
+      height: 48px;
+      font-size: 24px;
+    }
+
+    #app-screen {
+      display: none;
+      position: fixed;
+      top: 24px;
+      left: 0;
+      width: 100vw;
+      height: calc(100vh - 24px);
+      background: #fff;
+      z-index: 5;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #app-header {
+      padding: 12px 16px;
+      background: #f2f2f7;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      font-size: 18px;
+      user-select: none;
+    }
+
+    #close-btn {
+      font-size: 24px;
+      cursor: pointer;
+      user-select: none;
+      color: #888;
+    }
+
+    #app-content {
+      padding: 0;
+      font-size: 16px;
+      flex: 1;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    canvas {
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      display: block;
+      margin: 12px auto;
+      touch-action: none;
+      background: #000;
+    }
+
+    label.switch {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 10px 16px;
+      padding: 8px;
+      background: #f1f1f1;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+
+    iframe {
+      width: 100%;
+      border: none;
+      flex: 1;
+      border-radius: 0 0 16px 16px;
+    }
+
+    /* Vertical mode styles */
+    body.vertical-mode .grid {
+      grid-template-columns: 1fr !important;
+      max-width: 200px;
+      margin: 0 auto;
+      gap: 16px 0;
+    }
+
+    body.vertical-mode .dock {
+      position: fixed;
+      top: 60px;
+      left: 0;
+      width: 72px;
+      height: calc(100vh - 60px);
+      border-radius: 0 20px 20px 0;
+      flex-direction: column;
+      padding: 20px 0;
+      gap: 24px;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      transform: none;
+    }
+
+    /* Scrollbar for app-content */
+    #app-content::-webkit-scrollbar {
+      width: 8px;
+    }
+    #app-content::-webkit-scrollbar-thumb {
+      background-color: rgba(0,0,0,0.2);
+      border-radius: 4px;
+    }
+
+    @media (max-width: 400px) {
+      .grid {
+        grid-template-columns: repeat(3, 72px);
+      }
+      body.vertical-mode .grid {
+        max-width: 100%;
+      }
+    }
+
+    /* Geometry Dash styles */
+    #gd-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    #gd-levels {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .gd-level {
+      background: #007aff;
+      color: white;
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+      transition: background 0.2s ease;
+    }
+    .gd-level:hover {
+      background: #005bb5;
+    }
+
+    #gd-canvas {
+      background: #000;
+      border-radius: 12px;
+      width: 100%;
+      height: 300px;
+      display: block;
+      touch-action: none;
+    }
+
+    #gd-controls {
+      margin-top: 12px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    #gd-controls button {
+      padding: 10px 20px;
+      border-radius: 12px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      background: #007aff;
+      color: white;
+      user-select: none;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+      transition: background 0.2s ease;
+    }
+    #gd-controls button:hover {
+      background: #005bb5;
+    }
+
+    #gd-score {
+      margin-top: 12px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 18px;
+      color: #333;
+    }
   </style>
 </head>
 <body>
@@ -111,10 +291,6 @@
       <div class="icon-box">🎮</div>
       <div>Geometry Dash</div>
     </div>
-    <div class="icon" onclick="openApp('Roblox')">
-      <div class="icon-box">🤖</div>
-      <div>Roblox</div>
-    </div>
   </div>
 
   <div class="dock">
@@ -132,330 +308,385 @@
     <div id="app-content"></div>
   </div>
 
-<script>
-  // Open app function with Roblox + Brookhaven added
-  function openApp(name) {
-    const app = document.getElementById("app-screen");
-    const title = document.getElementById("app-title");
-    const content = document.getElementById("app-content");
-    title.textContent = name;
-    content.innerHTML = "";
+  <script>
+    // Basic apps open logic
+    function openApp(name) {
+      const app = document.getElementById("app-screen");
+      const title = document.getElementById("app-title");
+      const content = document.getElementById("app-content");
+      title.textContent = name;
+      content.innerHTML = "";
 
-    if (name === "Messages") {
-      content.innerHTML = "💬 This is the Messages app.";
-    } else if (name === "Block Blast") {
-      content.innerHTML = "🧱 This is the fake Block Blast game!";
-    } else if (name === "Browser") {
-      content.innerHTML = `
-        <div style="display:flex; padding:8px 12px; gap:8px; border-bottom:1px solid #ccc; background:#f2f2f7;">
-          <input id="addressInput" type="text" placeholder="Enter URL or search" 
-                 style="flex:1; border-radius:12px; border:1px solid #ccc; padding:6px 12px; font-size:14px;" />
-          <button id="goButton" style="
-            background:#007aff; color:#fff; border:none; border-radius:12px; padding:6px 14px; font-weight:600;
-            cursor:pointer;
-          ">Go</button>
-        </div>
-        <iframe id="browserFrame" src="https://example.com" style="width:100%; flex:1; border:none; border-radius: 0 0 16px 16px;"></iframe>
-      `;
+      if (name === "Messages") {
+        content.innerHTML = "💬 This is the Messages app.";
+      } else if (name === "Block Blast") {
+        content.innerHTML = "🧱 This is the fake Block Blast game!";
+      } else if (name === "Browser") {
+        content.innerHTML = `
+          <div style="display:flex; padding:8px 12px; gap:8px; border-bottom:1px solid #ccc; background:#f2f2f7;">
+            <input id="addressInput" type="text" placeholder="Enter URL or search" 
+                   style="flex:1; border-radius:12px; border:1px solid #ccc; padding:6px 12px; font-size:14px;" />
+            <button id="goButton" style="
+              background:#007aff; color:#fff; border:none; border-radius:12px; padding:6px 14px; font-weight:600;
+              cursor:pointer;
+            ">Go</button>
+          </div>
+          <iframe id="browserFrame" src="https://example.com" style="width:100%; flex:1; border:none; border-radius: 0 0 16px 16px;"></iframe>
+        `;
 
-      const input = content.querySelector('#addressInput');
-      const button = content.querySelector('#goButton');
-      const iframe = content.querySelector('#browserFrame');
+        const input = content.querySelector('#addressInput');
+        const button = content.querySelector('#goButton');
+        const iframe = content.querySelector('#browserFrame');
 
-      function loadURL() {
-        let url = input.value.trim();
-        if (!url) return;
-        if (!url.startsWith('http://') && !url.startsWith('https://')) {
-          url = 'https://' + url;
+        function loadURL() {
+          let url = input.value.trim();
+          if (!url) return;
+          if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            url = 'https://' + url;
+          }
+          iframe.src = url;
         }
-        iframe.src = url;
+
+        button.addEventListener('click', loadURL);
+        input.addEventListener('keydown', e => {
+          if (e.key === 'Enter') loadURL();
+        });
+      } else if (name === "Settings") {
+        content.innerHTML = `
+          <label class="switch">Airplane Mode <input type="checkbox" /></label>
+          <label class="switch">Wi-Fi <input type="checkbox" checked /></label>
+          <label class="switch">Bluetooth <input type="checkbox" /></label>
+          <label class="switch">Dark Mode <input type="checkbox" /></label>
+          <button id="toggleOrientationBtn" style="
+            margin: 20px 16px;
+            padding: 10px;
+            width: calc(100% - 32px);
+            background: #007aff;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+          ">Switch to Vertical Mode</button>
+        `;
+
+        // Add event listener after DOM is updated
+        setTimeout(() => {
+          const toggleBtn = document.getElementById('toggleOrientationBtn');
+          toggleBtn.addEventListener('click', () => {
+            document.body.classList.toggle('vertical-mode');
+            if(document.body.classList.contains('vertical-mode')){
+              toggleBtn.textContent = "Switch to Horizontal Mode";
+            } else {
+              toggleBtn.textContent = "Switch to Vertical Mode";
+            }
+          });
+
+          // Set initial button text based on current mode
+          const toggleBtnInit = document.getElementById('toggleOrientationBtn');
+          toggleBtnInit.textContent = document.body.classList.contains('vertical-mode') ? "Switch to Horizontal Mode" : "Switch to Vertical Mode";
+        }, 50);
+      } else if (name === "Procreate Portable") {
+        content.innerHTML = `
+          <canvas id="drawCanvas" width="320" height="360"></canvas>
+          <div style="text-align:center; margin-top: 8px;">
+            <input type="color" id="colorPicker" value="#000000" />
+            <button onclick="clearCanvas()" style="margin-left:10px;padding:6px 12px;font-size:14px;">Clear</button>
+          </div>
+        `;
+        setTimeout(enableDrawing, 100);
+      } else if (name === "YouTube") {
+        content.innerHTML = `
+          <div style="padding: 12px; display: flex; flex-direction: column; gap: 16px;">
+            <div style="font-weight: bold; font-size: 18px;">Recommended</div>
+            <div class="yt-video" onclick="loadVideo('https://www.youtube.com/embed/WLKJ8lBGI2E')"
+                 style="cursor:pointer;">
+              <img src="https://img.youtube.com/vi/WLKJ8lBGI2E/0.jpg" style="width: 100%; border-radius: 12px;" />
+              <div style="margin-top: 8px; font-weight: 500;">My Video</div>
+              <div style="font-size: 12px; color: gray;">Me</div>
+            </div>
+            <div class="yt-video" onclick="loadVideo('https://www.youtube.com/embed/dQw4w9WgXcQ')"
+                 style="cursor:pointer;">
+              <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg" style="width: 100%; border-radius: 12px;" />
+              <div style="margin-top: 8px; font-weight: 500;">Never Gonna Give You Up</div>
+              <div style="font-size: 12px; color: gray;">Rick Astley</div>
+            </div>
+          </div>
+        `;
+      } else if (name === "Geometry Dash") {
+        // Show level selection screen for Geometry Dash
+        content.innerHTML = `
+          <div id="gd-container">
+            <div id="gd-levels">
+              <div class="gd-level" onclick="startGDLevel('stereo')">Stereo Madness</div>
+              <div class="gd-level" onclick="startGDLevel('dash')">Dash</div>
+              <div class="gd-level" onclick="startGDLevel('slaughterhouse')">Slaughterhouse</div>
+            </div>
+          </div>
+        `;
+      } else {
+        content.innerHTML = `<p>🧠 Unknown app.</p>`;
       }
 
-      button.addEventListener('click', loadURL);
-      input.addEventListener('keydown', e => {
-        if (e.key === 'Enter') loadURL();
+      app.style.display = "flex";
+      app.style.flexDirection = "column";
+    }
+
+    function closeApp() {
+      document.getElementById("app-screen").style.display = "none";
+      // Stop any game loops if running
+      stopGDGame();
+    }
+
+    // Procreate drawing functions
+    function enableDrawing() {
+      const canvas = document.getElementById('drawCanvas');
+      const ctx = canvas.getContext('2d');
+      let drawing = false;
+      let color = document.getElementById('colorPicker').value;
+
+      canvas.addEventListener('pointerdown', e => {
+        drawing = true;
+        ctx.beginPath();
+        ctx.moveTo(e.offsetX, e.offsetY);
       });
-    } else if (name === "Settings") {
-      content.innerHTML = `
-        <label class="switch">Airplane Mode <input type="checkbox" /></label>
-        <label class="switch">Wi-Fi <input type="checkbox" checked /></label>
-        <label class="switch">Bluetooth <input type="checkbox" /></label>
-        <label class="switch">Dark Mode <input type="checkbox" /></label>
-        <button id="toggleOrientationBtn" style="
-          margin: 20px 16px;
-          padding: 10px;
-          width: calc(100% - 32px);
-          background: #007aff;
-          color: white;
-          border: none;
-          border-radius: 12px;
-          font-weight: 600;
-          cursor: pointer;
-          font-size: 16px;
-        ">Switch to Vertical Mode</button>
-      `;
 
-      setTimeout(() => {
-        const toggleBtn = document.getElementById('toggleOrientationBtn');
-        toggleBtn.addEventListener('click', () => {
-          document.body.classList.toggle('vertical-mode');
-          if(document.body.classList.contains('vertical-mode')){
-            toggleBtn.textContent = "Switch to Horizontal Mode";
-          } else {
-            toggleBtn.textContent = "Switch to Vertical Mode";
-          }
-        });
+      canvas.addEventListener('pointermove', e => {
+        if (!drawing) return;
+        ctx.strokeStyle = color;
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+      });
 
-        const toggleBtnInit = document.getElementById('toggleOrientationBtn');
-        toggleBtnInit.textContent = document.body.classList.contains('vertical-mode') ? "Switch to Horizontal Mode" : "Switch to Vertical Mode";
-      }, 50);
-    } else if (name === "Procreate Portable") {
-      content.innerHTML = `
-        <canvas id="drawCanvas" width="320" height="360"></canvas>
-        <div style="text-align:center; margin-top: 8px;">
-          <input type="color" id="colorPicker" value="#000000" />
-          <button onclick="clearCanvas()" style="margin-left:10px;padding:6px 12px;font-size:14px;">Clear</button>
-        </div>
-      `;
-      setTimeout(enableDrawing, 100);
-    } else if (name === "YouTube") {
-      content.innerHTML = `
-        <div style="padding: 12px; display: flex; flex-direction: column; gap: 16px;">
-          <div style="font-weight: bold; font-size: 18px;">Recommended</div>
-          <div class="yt-video" onclick="loadVideo('https://www.youtube.com/embed/WLKJ8lBGI2E')"
-               style="cursor:pointer;">
-            <img src="https://img.youtube.com/vi/WLKJ8lBGI2E/0.jpg" style="width: 100%; border-radius: 12px;" />
-            <div style="margin-top: 8px; font-weight: 500;">My Video</div>
-            <div style="font-size: 12px; color: gray;">Me</div>
-          </div>
-          <div class="yt-video" onclick="loadVideo('https://www.youtube.com/embed/dQw4w9WgXcQ')"
-               style="cursor:pointer;">
-            <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg" style="width: 100%; border-radius: 12px;" />
-            <div style="margin-top: 8px; font-weight: 500;">Never Gonna Give You Up</div>
-            <div style="font-size: 12px; color: gray;">Rick Astley</div>
-          </div>
-        </div>
-      `;
-    } else if (name === "Geometry Dash") {
-      // Your existing Geometry Dash code here (not repeated for brevity)
-      content.innerHTML = `<p>Geometry Dash game here (not included in this snippet)</p>`;
-    } else if (name === "Roblox") {
-      // Embed the fake Brookhaven mini-game
-      content.innerHTML = `
-        <div id="brookhaven-container">
-          <div id="bh-instructions">Use arrow keys or WASD to move. Click on houses to interact.</div>
-          <canvas id="bh-game" width="480" height="320"></canvas>
-          <div id="bh-objects"></div>
-          <div id="bh-message"></div>
-        </div>
-      `;
-      startBrookhaven();
-    } else {
-      content.innerHTML = `<p>🧠 Unknown app.</p>`;
+      canvas.addEventListener('pointerup', () => drawing = false);
+      canvas.addEventListener('pointerleave', () => drawing = false);
+
+      document.getElementById('colorPicker').addEventListener('input', e => {
+        color = e.target.value;
+      });
     }
 
-    app.style.display = "flex";
-    app.style.flexDirection = "column";
-  }
+    function clearCanvas() {
+      const canvas = document.getElementById('drawCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
 
-  function closeApp() {
-    document.getElementById("app-screen").style.display = "none";
-    stopBrookhaven();
-    stopGDGame && stopGDGame();
-  }
+    function loadVideo(url) {
+      const content = document.getElementById("app-content");
+      content.innerHTML = `
+        <div style="padding: 12px;">
+          <button onclick="openApp('YouTube')" style="
+            padding: 6px 12px;
+            background: #ff0000;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            cursor: pointer;
+          ">← Back</button>
+          <iframe width="100%" height="200" src="${url}" frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen>
+          </iframe>
+        </div>
+      `;
+    }
 
-  // --- Drawing functions for Procreate ---
-  function enableDrawing() {
-    const canvas = document.getElementById('drawCanvas');
-    const ctx = canvas.getContext('2d');
-    let drawing = false;
-    let color = document.getElementById('colorPicker').value;
+    // --------- Geometry Dash game logic ---------
 
-    canvas.addEventListener('pointerdown', e => {
-      drawing = true;
-      ctx.beginPath();
-      ctx.moveTo(e.offsetX, e.offsetY);
-    });
+    let gdGameRunning = false;
+    let gdAnimationFrame = null;
 
-    canvas.addEventListener('pointermove', e => {
-      if (!drawing) return;
-      ctx.strokeStyle = color;
-      ctx.lineTo(e.offsetX, e.offsetY);
-      ctx.stroke();
-    });
+    function startGDLevel(level) {
+      const content = document.getElementById('app-content');
+      content.innerHTML = `
+        <div id="gd-container">
+          <canvas id="gd-canvas" width="480" height="300"></canvas>
+          <div id="gd-controls">
+            <button id="gd-back-btn">Back</button>
+            <button id="gd-restart-btn">Restart</button>
+          </div>
+          <div id="gd-score">Score: 0</div>
+        </div>
+      `;
 
-    canvas.addEventListener('pointerup', () => drawing = false);
-    canvas.addEventListener('pointerleave', () => drawing = false);
-
-    document.getElementById('colorPicker').addEventListener('input', e => {
-      color = e.target.value;
-    });
-  }
-
-  function clearCanvas() {
-    const canvas = document.getElementById('drawCanvas');
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
-
-  function loadVideo(url) {
-    const content = document.getElementById("app-content");
-    content.innerHTML = `
-      <div style="padding: 12px;">
-        <button onclick="openApp('YouTube')" style="
-          padding: 6px 12px;
-          background: #ff0000;
-          color: white;
-          border: none;
-          border-radius: 12px;
-          font-weight: bold;
-          margin-bottom: 12px;
-          cursor: pointer;
-        ">← Back</button>
-        <iframe width="100%" height="200" src="${url}" frameborder="0" 
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-          allowfullscreen>
-        </iframe>
-      </div>
-    `;
-  }
-
-  // --- Brookhaven Mini-Game ---
-  let bhGameRunning = false;
-  let bhAnimationFrame = null;
-  let bhPlayer = null;
-  let bhCtx = null;
-  let bhObjects = [];
-  let bhMessageTimeout = null;
-
-  function startBrookhaven() {
-    const canvas = document.getElementById('bh-game');
-    bhCtx = canvas.getContext('2d');
-    const width = canvas.width;
-    const height = canvas.height;
-
-    // Player setup
-    bhPlayer = {
-      x: width/2,
-      y: height/2,
-      size: 24,
-      color: '#ff5c5c',
-      speed: 3,
-      dx: 0,
-      dy: 0,
-    };
-
-    // Sample houses / interactables
-    bhObjects = [
-      {x: 100, y: 80, width: 60, height: 60, name: 'House 1', color: '#8B4513', message: 'Welcome to House 1!'},
-      {x: 300, y: 150, width: 80, height: 50, name: 'House 2', color: '#2E8B57', message: 'This is House 2. Nice and cozy!'},
-      {x: 180, y: 250, width: 70, height: 70, name: 'Shop', color: '#4682B4', message: 'You entered the Shop. Buy something!'},
-    ];
-
-    // Display interactable buttons below
-    const objContainer = document.getElementById('bh-objects');
-    objContainer.innerHTML = '';
-    bhObjects.forEach((obj, i) => {
-      const btn = document.createElement('div');
-      btn.className = 'bh-object';
-      btn.textContent = obj.name;
-      btn.onclick = () => {
-        showMessage(obj.message);
-        // Move player near the object when clicked
-        bhPlayer.x = obj.x + obj.width + 10;
-        bhPlayer.y = obj.y + obj.height / 2 - bhPlayer.size / 2;
+      // Attach back and restart handlers
+      document.getElementById('gd-back-btn').onclick = () => {
+        stopGDGame();
+        openApp('Geometry Dash');
       };
-      objContainer.appendChild(btn);
-    });
+      document.getElementById('gd-restart-btn').onclick = () => {
+        stopGDGame();
+        startGDLevel(level);
+      };
 
-    // Movement controls
-    const keys = {};
-    window.addEventListener('keydown', e => {
-      keys[e.key.toLowerCase()] = true;
-    });
-    window.addEventListener('keyup', e => {
-      keys[e.key.toLowerCase()] = false;
-    });
+      const canvas = document.getElementById('gd-canvas');
+      const ctx = canvas.getContext('2d');
 
-    function showMessage(msg) {
-      clearTimeout(bhMessageTimeout);
-      const msgEl = document.getElementById('bh-message');
-      msgEl.textContent = msg;
-      bhMessageTimeout = setTimeout(() => { msgEl.textContent = ''; }, 4000);
-    }
+      // Game variables
+      const width = canvas.width;
+      const height = canvas.height;
+      const groundY = height - 50;
 
-    function update() {
-      // Move player based on keys pressed
-      bhPlayer.dx = 0;
-      bhPlayer.dy = 0;
-      if (keys['arrowup'] || keys['w']) bhPlayer.dy = -bhPlayer.speed;
-      if (keys['arrowdown'] || keys['s']) bhPlayer.dy = bhPlayer.speed;
-      if (keys['arrowleft'] || keys['a']) bhPlayer.dx = -bhPlayer.speed;
-      if (keys['arrowright'] || keys['d']) bhPlayer.dx = bhPlayer.speed;
+      let cube = {
+        x: 50,
+        y: groundY,
+        width: 30,
+        height: 30,
+        dy: 0,
+        gravity: 0.8,
+        jumpStrength: -15,
+        onGround: true,
+        color: '#00aaff',
+      };
 
-      // Update position with bounds check
-      bhPlayer.x += bhPlayer.dx;
-      bhPlayer.y += bhPlayer.dy;
-      if (bhPlayer.x < 0) bhPlayer.x = 0;
-      if (bhPlayer.y < 0) bhPlayer.y = 0;
-      if (bhPlayer.x + bhPlayer.size > width) bhPlayer.x = width - bhPlayer.size;
-      if (bhPlayer.y + bhPlayer.size > height) bhPlayer.y = height - bhPlayer.size;
+      let obstacles = [];
+      let obstacleSpeed = 5;
+      let spawnInterval = 120; // frames
+      let frameCount = 0;
+      let score = 0;
+      let gameOver = false;
 
-      // Check collisions with objects for "interaction" (simple bounding box)
-      bhObjects.forEach(obj => {
-        if (bhPlayer.x < obj.x + obj.width &&
-            bhPlayer.x + bhPlayer.size > obj.x &&
-            bhPlayer.y < obj.y + obj.height &&
-            bhPlayer.y + bhPlayer.size > obj.y) {
-          showMessage(`You are near ${obj.name}. Click its button to interact!`);
+      // Adjust difficulty based on level
+      if (level === 'stereo') {
+        obstacleSpeed = 4;
+        spawnInterval = 150;
+      } else if (level === 'dash') {
+        obstacleSpeed = 5.5;
+        spawnInterval = 110;
+      } else if (level === 'slaughterhouse') {
+        obstacleSpeed = 7;
+        spawnInterval = 90;
+      }
+
+      // Input handling (jump on click/tap/space)
+      function jump() {
+        if (cube.onGround && !gameOver) {
+          cube.dy = cube.jumpStrength;
+          cube.onGround = false;
+        }
+      }
+
+      canvas.addEventListener('mousedown', jump);
+      canvas.addEventListener('touchstart', e => {
+        e.preventDefault();
+        jump();
+      }, {passive: false});
+
+      document.addEventListener('keydown', e => {
+        if (e.code === 'Space') {
+          jump();
         }
       });
+
+      function resetGame() {
+        cube.y = groundY;
+        cube.dy = 0;
+        cube.onGround = true;
+        obstacles = [];
+        frameCount = 0;
+        score = 0;
+        gameOver = false;
+      }
+
+      resetGame();
+
+      function update() {
+        if (gameOver) return;
+
+        frameCount++;
+        // Move cube
+        cube.dy += cube.gravity;
+        cube.y += cube.dy;
+        if (cube.y > groundY) {
+          cube.y = groundY;
+          cube.dy = 0;
+          cube.onGround = true;
+        }
+
+        // Spawn obstacles
+        if (frameCount % spawnInterval === 0) {
+          // Obstacles are rectangles of random heights
+          let obsHeight = 30 + Math.random() * 40;
+          obstacles.push({
+            x: width,
+            y: groundY + cube.height - obsHeight,
+            width: 20,
+            height: obsHeight,
+            color: '#ff3b3b',
+          });
+        }
+
+        // Move obstacles and check collision
+        for (let i = obstacles.length -1; i >=0; i--) {
+          obstacles[i].x -= obstacleSpeed;
+
+          // Collision detection (AABB)
+          if (cube.x < obstacles[i].x + obstacles[i].width &&
+              cube.x + cube.width > obstacles[i].x &&
+              cube.y + cube.height > obstacles[i].y) {
+            gameOver = true;
+          }
+
+          // Remove off screen
+          if (obstacles[i].x + obstacles[i].width < 0) {
+            obstacles.splice(i,1);
+            if (!gameOver) score++;
+          }
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0,0,width,height);
+
+        // Draw ground
+        ctx.fillStyle = '#222';
+        ctx.fillRect(0, groundY + cube.height, width, height - groundY - cube.height);
+
+        // Draw cube
+        ctx.fillStyle = cube.color;
+        ctx.fillRect(cube.x, cube.y, cube.width, cube.height);
+
+        // Draw obstacles
+        obstacles.forEach(obs => {
+          ctx.fillStyle = obs.color;
+          ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+        });
+
+        // If game over, show text
+        if (gameOver) {
+          ctx.fillStyle = 'rgba(0,0,0,0.7)';
+          ctx.fillRect(0, 0, width, height);
+          ctx.fillStyle = '#fff';
+          ctx.font = '36px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('Game Over!', width / 2, height / 2 - 20);
+          ctx.font = '20px sans-serif';
+          ctx.fillText(`Score: ${score}`, width / 2, height / 2 + 20);
+        }
+      }
+
+      function gameLoop() {
+        if (!gdGameRunning) return;
+        update();
+        draw();
+        document.getElementById('gd-score').textContent = `Score: ${score}`;
+        gdAnimationFrame = requestAnimationFrame(gameLoop);
+      }
+
+      gdGameRunning = true;
+      gameLoop();
+
+      // Save stop function to global so can be stopped when closing app
+      window.stopGDGame = function() {
+        gdGameRunning = false;
+        if (gdAnimationFrame) cancelAnimationFrame(gdAnimationFrame);
+      }
     }
-
-    function draw() {
-      bhCtx.clearRect(0, 0, width, height);
-
-      // Draw ground
-      bhCtx.fillStyle = '#a3d9ff';
-      bhCtx.fillRect(0, 0, width, height);
-
-      // Draw objects (houses)
-      bhObjects.forEach(obj => {
-        bhCtx.fillStyle = obj.color;
-        bhCtx.fillRect(obj.x, obj.y, obj.width, obj.height);
-        bhCtx.fillStyle = '#fff';
-        bhCtx.font = '12px sans-serif';
-        bhCtx.textAlign = 'center';
-        bhCtx.fillText(obj.name, obj.x + obj.width/2, obj.y + obj.height/2 + 4);
-      });
-
-      // Draw player
-      bhCtx.fillStyle = bhPlayer.color;
-      bhCtx.fillRect(bhPlayer.x, bhPlayer.y, bhPlayer.size, bhPlayer.size);
-    }
-
-    function loop() {
-      if (!bhGameRunning) return;
-      update();
-      draw();
-      bhAnimationFrame = requestAnimationFrame(loop);
-    }
-
-    bhGameRunning = true;
-    loop();
-  }
-
-  function stopBrookhaven() {
-    if (bhAnimationFrame) {
-      cancelAnimationFrame(bhAnimationFrame);
-      bhAnimationFrame = null;
-    }
-    bhGameRunning = false;
-    const container = document.getElementById('brookhaven-container');
-    if(container) container.innerHTML = '';
-  }
-
-</script>
+  </script>
 
 </body>
 </html>
