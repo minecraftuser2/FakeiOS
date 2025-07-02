@@ -320,7 +320,234 @@
       if (name === "Messages") {
         content.innerHTML = "💬 This is the Messages app.";
       } else if (name === "Block Blast") {
-        content.innerHTML = "🧱 This is the fake Block Blast game!";
+  // Setup a 8x8 grid with random blocks (colors)
+  const rows = 8;
+  const cols = 8;
+  const blockSize = 40;
+  const colors = ['red', 'green', 'blue', 'yellow', 'purple'];
+
+  content.innerHTML = `
+    <div style="text-align:center; margin-top:12px; font-weight:bold; font-size:18px;">Block Blast</div>
+    <canvas id="blockblast-canvas" width="${cols * blockSize}" height="${rows * blockSize}" 
+            style="background:#222; display:block; margin:12px auto; border-radius:12px; touch-action:none;"></canvas>
+    <div style="text-align:center; margin-top: 8px; font-weight:bold; font-size:16px;">Score: <span id="bb-score">0</span></div>
+    <button id="bb-restart" style="
+      margin-top: 12px; padding: 10px 24px; font-weight:bold; font-size:16px; border:none; border-radius:12px;
+      background:#007aff; color:#fff; cursor:pointer;
+    ">Restart</button>
+  `;
+
+  const canvas = content.querySelector('#blockblast-canvas');
+  const ctx = canvas.getContext('2d');
+
+  let grid = [];
+  let score = 0;
+
+  // Generate random block color
+  function randomColor() {
+    return colors[Math.floor(Math.random() * colors.length)];
+  }
+
+  // Initialize grid with random colors
+  function initGrid() {
+    grid = [];
+    for (let r = 0; r < rows; r++) {
+      let row = [];
+      for (let c = 0; c < cols; c++) {
+        row.push(randomColor());
+      }
+      grid.push(row);
+    }
+  }
+
+  // Draw the grid on canvas
+  function drawGrid() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const x = c * blockSize;
+        const y = r * blockSize;
+        ctx.fillStyle = grid[r][c];
+        ctx.fillRect(x + 2, y + 2, blockSize - 4, blockSize - 4);
+        ctx.strokeStyle = '#111';
+        ctx.strokeRect(x + 2, y + 2, blockSize - 4, blockSize - 4);
+      }
+    }
+  }
+
+  // Check for matches (horizontal & vertical) of 3 or more blocks
+  function findMatches() {
+    let matches = [];
+    // horizontal
+    for (let r = 0; r < rows; r++) {
+      let matchLength = 1;
+      for (let c = 1; c < cols; c++) {
+        if (grid[r][c] === grid[r][c - 1]) {
+          matchLength++;
+        } else {
+          if (matchLength >= 3) {
+            for (let i = 0; i < matchLength; i++) {
+              matches.push({r: r, c: c - 1 - i});
+            }
+          }
+          matchLength = 1;
+        }
+      }
+      if (matchLength >= 3) {
+        for (let i = 0; i < matchLength; i++) {
+          matches.push({r: r, c: cols - 1 - i});
+        }
+      }
+    }
+
+    // vertical
+    for (let c = 0; c < cols; c++) {
+      let matchLength = 1;
+      for (let r = 1; r < rows; r++) {
+        if (grid[r][c] === grid[r - 1][c]) {
+          matchLength++;
+        } else {
+          if (matchLength >= 3) {
+            for (let i = 0; i < matchLength; i++) {
+              matches.push({r: r - 1 - i, c: c});
+            }
+          }
+          matchLength = 1;
+        }
+      }
+      if (matchLength >= 3) {
+        for (let i = 0; i < matchLength; i++) {
+          matches.push({r: rows - 1 - i, c: c});
+        }
+      }
+    }
+
+    // Remove duplicates
+    let uniqueMatches = [];
+    let seen = {};
+    matches.forEach(pos => {
+      let key = pos.r + ',' + pos.c;
+      if (!seen[key]) {
+        uniqueMatches.push(pos);
+        seen[key] = true;
+      }
+    });
+    return uniqueMatches;
+  }
+
+  // Remove matches, add score, and collapse grid
+  function removeMatchesAndCollapse(matches) {
+    if (matches.length === 0) return false;
+
+    score += matches.length * 10;
+    document.getElementById('bb-score').textContent = score;
+
+    // Remove matched blocks
+    matches.forEach(({r, c}) => {
+      grid[r][c] = null;
+    });
+
+    // Collapse columns down
+    for (let c = 0; c < cols; c++) {
+      let col = [];
+      for (let r = 0; r < rows; r++) {
+        if (grid[r][c] !== null) {
+          col.push(grid[r][c]);
+        }
+      }
+      // Add new blocks at top
+      while (col.length < rows) {
+        col.unshift(randomColor());
+      }
+      for (let r = 0; r < rows; r++) {
+        grid[r][c] = col[r];
+      }
+    }
+    return true;
+  }
+
+  // Swap two blocks in grid
+  function swapBlocks(r1, c1, r2, c2) {
+    const temp = grid[r1][c1];
+    grid[r1][c1] = grid[r2][c2];
+    grid[r2][c2] = temp;
+  }
+
+  // Check if two positions are adjacent
+  function isAdjacent(r1, c1, r2, c2) {
+    return (r1 === r2 && Math.abs(c1 - c2) === 1) || (c1 === c2 && Math.abs(r1 - r2) === 1);
+  }
+
+  // Game state for selection
+  let selected = null;
+
+  // Handle click / tap for swapping
+  canvas.addEventListener('pointerdown', e => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const c = Math.floor(x / blockSize);
+    const r = Math.floor(y / blockSize);
+    if (r < 0 || r >= rows || c < 0 || c >= cols) return;
+
+    if (!selected) {
+      selected = {r, c};
+      drawGrid();
+      highlightBlock(selected.r, selected.c);
+    } else {
+      if (r === selected.r && c === selected.c) {
+        // Deselect if same block
+        selected = null;
+        drawGrid();
+      } else if (isAdjacent(r, c, selected.r, selected.c)) {
+        // Swap and check matches
+        swapBlocks(r, c, selected.r, selected.c);
+        const matches = findMatches();
+        if (matches.length > 0) {
+          // Valid move, remove matches repeatedly until none
+          function clearLoop() {
+            const m = findMatches();
+            if (m.length > 0) {
+              removeMatchesAndCollapse(m);
+              drawGrid();
+              setTimeout(clearLoop, 300);
+            }
+          }
+          clearLoop();
+        } else {
+          // No match, swap back
+          swapBlocks(r, c, selected.r, selected.c);
+        }
+        selected = null;
+        drawGrid();
+      } else {
+        // Select new block if not adjacent
+        selected = {r, c};
+        drawGrid();
+        highlightBlock(selected.r, selected.c);
+      }
+    }
+  });
+
+  // Highlight selected block
+  function highlightBlock(r, c) {
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(c * blockSize + 3, r * blockSize + 3, blockSize - 6, blockSize - 6);
+  }
+
+  // Restart button
+  content.querySelector('#bb-restart').addEventListener('click', () => {
+    score = 0;
+    document.getElementById('bb-score').textContent = score;
+    initGrid();
+    drawGrid();
+  });
+
+  // Initialize and draw first time
+  initGrid();
+  drawGrid();
+        
       } else if (name === "Browser") {
         content.innerHTML = `
           <div style="display:flex; padding:8px 12px; gap:8px; border-bottom:1px solid #ccc; background:#f2f2f7;">
@@ -346,6 +573,235 @@
           }
           iframe.src = url;
         }
+else if (name === "Block Blast") {
+  // Setup a 8x8 grid with random blocks (colors)
+  const rows = 8;
+  const cols = 8;
+  const blockSize = 40;
+  const colors = ['red', 'green', 'blue', 'yellow', 'purple'];
+
+  content.innerHTML = `
+    <div style="text-align:center; margin-top:12px; font-weight:bold; font-size:18px;">Block Blast</div>
+    <canvas id="blockblast-canvas" width="${cols * blockSize}" height="${rows * blockSize}" 
+            style="background:#222; display:block; margin:12px auto; border-radius:12px; touch-action:none;"></canvas>
+    <div style="text-align:center; margin-top: 8px; font-weight:bold; font-size:16px;">Score: <span id="bb-score">0</span></div>
+    <button id="bb-restart" style="
+      margin-top: 12px; padding: 10px 24px; font-weight:bold; font-size:16px; border:none; border-radius:12px;
+      background:#007aff; color:#fff; cursor:pointer;
+    ">Restart</button>
+  `;
+
+  const canvas = content.querySelector('#blockblast-canvas');
+  const ctx = canvas.getContext('2d');
+
+  let grid = [];
+  let score = 0;
+
+  // Generate random block color
+  function randomColor() {
+    return colors[Math.floor(Math.random() * colors.length)];
+  }
+
+  // Initialize grid with random colors
+  function initGrid() {
+    grid = [];
+    for (let r = 0; r < rows; r++) {
+      let row = [];
+      for (let c = 0; c < cols; c++) {
+        row.push(randomColor());
+      }
+      grid.push(row);
+    }
+  }
+
+  // Draw the grid on canvas
+  function drawGrid() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const x = c * blockSize;
+        const y = r * blockSize;
+        ctx.fillStyle = grid[r][c];
+        ctx.fillRect(x + 2, y + 2, blockSize - 4, blockSize - 4);
+        ctx.strokeStyle = '#111';
+        ctx.strokeRect(x + 2, y + 2, blockSize - 4, blockSize - 4);
+      }
+    }
+  }
+
+  // Check for matches (horizontal & vertical) of 3 or more blocks
+  function findMatches() {
+    let matches = [];
+    // horizontal
+    for (let r = 0; r < rows; r++) {
+      let matchLength = 1;
+      for (let c = 1; c < cols; c++) {
+        if (grid[r][c] === grid[r][c - 1]) {
+          matchLength++;
+        } else {
+          if (matchLength >= 3) {
+            for (let i = 0; i < matchLength; i++) {
+              matches.push({r: r, c: c - 1 - i});
+            }
+          }
+          matchLength = 1;
+        }
+      }
+      if (matchLength >= 3) {
+        for (let i = 0; i < matchLength; i++) {
+          matches.push({r: r, c: cols - 1 - i});
+        }
+      }
+    }
+
+    // vertical
+    for (let c = 0; c < cols; c++) {
+      let matchLength = 1;
+      for (let r = 1; r < rows; r++) {
+        if (grid[r][c] === grid[r - 1][c]) {
+          matchLength++;
+        } else {
+          if (matchLength >= 3) {
+            for (let i = 0; i < matchLength; i++) {
+              matches.push({r: r - 1 - i, c: c});
+            }
+          }
+          matchLength = 1;
+        }
+      }
+      if (matchLength >= 3) {
+        for (let i = 0; i < matchLength; i++) {
+          matches.push({r: rows - 1 - i, c: c});
+        }
+      }
+    }
+
+    // Remove duplicates
+    let uniqueMatches = [];
+    let seen = {};
+    matches.forEach(pos => {
+      let key = pos.r + ',' + pos.c;
+      if (!seen[key]) {
+        uniqueMatches.push(pos);
+        seen[key] = true;
+      }
+    });
+    return uniqueMatches;
+  }
+
+  // Remove matches, add score, and collapse grid
+  function removeMatchesAndCollapse(matches) {
+    if (matches.length === 0) return false;
+
+    score += matches.length * 10;
+    document.getElementById('bb-score').textContent = score;
+
+    // Remove matched blocks
+    matches.forEach(({r, c}) => {
+      grid[r][c] = null;
+    });
+
+    // Collapse columns down
+    for (let c = 0; c < cols; c++) {
+      let col = [];
+      for (let r = 0; r < rows; r++) {
+        if (grid[r][c] !== null) {
+          col.push(grid[r][c]);
+        }
+      }
+      // Add new blocks at top
+      while (col.length < rows) {
+        col.unshift(randomColor());
+      }
+      for (let r = 0; r < rows; r++) {
+        grid[r][c] = col[r];
+      }
+    }
+    return true;
+  }
+
+  // Swap two blocks in grid
+  function swapBlocks(r1, c1, r2, c2) {
+    const temp = grid[r1][c1];
+    grid[r1][c1] = grid[r2][c2];
+    grid[r2][c2] = temp;
+  }
+
+  // Check if two positions are adjacent
+  function isAdjacent(r1, c1, r2, c2) {
+    return (r1 === r2 && Math.abs(c1 - c2) === 1) || (c1 === c2 && Math.abs(r1 - r2) === 1);
+  }
+
+  // Game state for selection
+  let selected = null;
+
+  // Handle click / tap for swapping
+  canvas.addEventListener('pointerdown', e => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const c = Math.floor(x / blockSize);
+    const r = Math.floor(y / blockSize);
+    if (r < 0 || r >= rows || c < 0 || c >= cols) return;
+
+    if (!selected) {
+      selected = {r, c};
+      drawGrid();
+      highlightBlock(selected.r, selected.c);
+    } else {
+      if (r === selected.r && c === selected.c) {
+        // Deselect if same block
+        selected = null;
+        drawGrid();
+      } else if (isAdjacent(r, c, selected.r, selected.c)) {
+        // Swap and check matches
+        swapBlocks(r, c, selected.r, selected.c);
+        const matches = findMatches();
+        if (matches.length > 0) {
+          // Valid move, remove matches repeatedly until none
+          function clearLoop() {
+            const m = findMatches();
+            if (m.length > 0) {
+              removeMatchesAndCollapse(m);
+              drawGrid();
+              setTimeout(clearLoop, 300);
+            }
+          }
+          clearLoop();
+        } else {
+          // No match, swap back
+          swapBlocks(r, c, selected.r, selected.c);
+        }
+        selected = null;
+        drawGrid();
+      } else {
+        // Select new block if not adjacent
+        selected = {r, c};
+        drawGrid();
+        highlightBlock(selected.r, selected.c);
+      }
+    }
+  });
+
+  // Highlight selected block
+  function highlightBlock(r, c) {
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(c * blockSize + 3, r * blockSize + 3, blockSize - 6, blockSize - 6);
+  }
+
+  // Restart button
+  content.querySelector('#bb-restart').addEventListener('click', () => {
+    score = 0;
+    document.getElementById('bb-score').textContent = score;
+    initGrid();
+    drawGrid();
+  });
+
+  // Initialize and draw first time
+  initGrid();
+  drawGrid();
+}
 
         button.addEventListener('click', loadURL);
         input.addEventListener('keydown', e => {
