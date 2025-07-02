@@ -320,7 +320,188 @@
       if (name === "Messages") {
         content.innerHTML = "💬 This is the Messages app.";
       } else if (name === "Block Blast") {
-        content.innerHTML = "🧱 This is the fake Block Blast game!";
+  content.innerHTML = `
+    <style>
+      #bb-container {
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+      }
+      #bb-board {
+        display: grid;
+        grid-template-columns: repeat(9, 32px);
+        grid-template-rows: repeat(9, 32px);
+        gap: 2px;
+        background: #ccc;
+        border-radius: 12px;
+        padding: 8px;
+      }
+      .bb-cell {
+        width: 32px;
+        height: 32px;
+        background: #f0f0f0;
+        border-radius: 6px;
+      }
+      .bb-filled {
+        background: #007aff;
+      }
+      #bb-pieces {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+      .bb-piece {
+        display: inline-grid;
+        grid-template-columns: repeat(5, 16px);
+        grid-auto-rows: 16px;
+        gap: 2px;
+        cursor: grab;
+      }
+      .bb-block {
+        width: 16px;
+        height: 16px;
+        background: #007aff;
+        border-radius: 4px;
+      }
+      #bb-score {
+        font-weight: 600;
+        font-size: 16px;
+        color: #333;
+      }
+    </style>
+    <div id="bb-container">
+      <div id="bb-score">Score: 0</div>
+      <div id="bb-board"></div>
+      <div id="bb-pieces"></div>
+    </div>
+  `;
+
+  const board = document.getElementById("bb-board");
+  const piecesDiv = document.getElementById("bb-pieces");
+  const scoreEl = document.getElementById("bb-score");
+
+  const boardState = Array.from({ length: 9 }, () => Array(9).fill(0));
+  let score = 0;
+
+  function drawBoard() {
+    board.innerHTML = "";
+    for (let y = 0; y < 9; y++) {
+      for (let x = 0; x < 9; x++) {
+        const cell = document.createElement("div");
+        cell.className = "bb-cell" + (boardState[y][x] ? " bb-filled" : "");
+        board.appendChild(cell);
+      }
+    }
+  }
+
+  function clearLines() {
+    let linesCleared = 0;
+
+    // Rows
+    for (let y = 0; y < 9; y++) {
+      if (boardState[y].every(c => c)) {
+        boardState[y] = Array(9).fill(0);
+        linesCleared++;
+      }
+    }
+
+    // Columns
+    for (let x = 0; x < 9; x++) {
+      if (boardState.every(row => row[x])) {
+        for (let y = 0; y < 9; y++) {
+          boardState[y][x] = 0;
+        }
+        linesCleared++;
+      }
+    }
+
+    score += linesCleared * 10;
+    scoreEl.textContent = `Score: ${score}`;
+  }
+
+  function generatePiece() {
+    const shapes = [
+      [[1]], // single
+      [[1, 1]], // horizontal
+      [[1], [1]], // vertical
+      [[1,1],[1,1]], // square
+      [[1,0],[1,0],[1,1]] // L
+    ];
+    const shape = shapes[Math.floor(Math.random() * shapes.length)];
+    return shape;
+  }
+
+  function drawPiece(shape) {
+    const div = document.createElement("div");
+    div.className = "bb-piece";
+    div.style.gridTemplateColumns = `repeat(${shape[0].length}, 16px)`;
+    shape.forEach(row => {
+      row.forEach(cell => {
+        const block = document.createElement("div");
+        block.className = cell ? "bb-block" : "";
+        div.appendChild(block);
+      });
+    });
+    div.draggable = true;
+
+    div.addEventListener("dragstart", e => {
+      e.dataTransfer.setData("shape", JSON.stringify(shape));
+    });
+
+    piecesDiv.appendChild(div);
+  }
+
+  function spawnPieces() {
+    piecesDiv.innerHTML = "";
+    for (let i = 0; i < 3; i++) {
+      drawPiece(generatePiece());
+    }
+  }
+
+  board.addEventListener("dragover", e => e.preventDefault());
+  board.addEventListener("drop", e => {
+    const shape = JSON.parse(e.dataTransfer.getData("shape"));
+    const rect = board.getBoundingClientRect();
+    const x = Math.floor((e.clientX - rect.left - 8) / 34);
+    const y = Math.floor((e.clientY - rect.top - 8) / 34);
+
+    // Check if fits
+    let fits = true;
+    for (let dy = 0; dy < shape.length; dy++) {
+      for (let dx = 0; dx < shape[0].length; dx++) {
+        if (shape[dy][dx]) {
+          const yy = y + dy;
+          const xx = x + dx;
+          if (yy >= 9 || xx >= 9 || boardState[yy][xx]) {
+            fits = false;
+          }
+        }
+      }
+    }
+
+    if (!fits) return;
+
+    // Place shape
+    for (let dy = 0; dy < shape.length; dy++) {
+      for (let dx = 0; dx < shape[0].length; dx++) {
+        if (shape[dy][dx]) {
+          boardState[y + dy][x + dx] = 1;
+        }
+      }
+    }
+
+    drawBoard();
+    clearLines();
+    spawnPieces();
+  });
+
+  drawBoard();
+  spawnPieces();
+}
+
       } else if (name === "Browser") {
         content.innerHTML = `
           <div style="display:flex; padding:8px 12px; gap:8px; border-bottom:1px solid #ccc; background:#f2f2f7;">
