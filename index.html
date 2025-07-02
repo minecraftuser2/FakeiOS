@@ -1,550 +1,1148 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Fake iOS Home Screen</title>
-<style>
-  /* Basic reset and body styling */
-  body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-      Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-    background: #f0f0f5;
-    color: #000;
-    user-select: none;
-    -webkit-user-select: none;
-  }
-  /* Home screen container */
-  #home-screen {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 18px;
-    padding: 30px 16px 100px;
-  }
-  /* App icon styling */
-  .app-icon {
-    width: 80px;
-    height: 80px;
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 4px 8px rgb(0 0 0 / 0.15);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: transform 0.15s ease;
-  }
-  .app-icon:active {
-    transform: scale(0.9);
-  }
-  .app-icon img {
-    width: 44px;
-    height: 44px;
-  }
-  .app-icon span {
-    margin-top: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #222;
-  }
-  /* App screen modal */
-  #app-screen {
-    position: fixed;
-    top: 10vh;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 360px;
-    max-width: 95vw;
-    height: 600px;
-    background: white;
-    border-radius: 30px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
-    display: none;
-    flex-direction: column;
-    overflow: hidden;
-    z-index: 10;
-  }
-  #app-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 24px;
-    border-bottom: 1px solid #ccc;
-    font-weight: 600;
-    font-size: 18px;
-    background: #f7f7f7;
-  }
-  #app-title {
-    user-select: none;
-  }
-  #app-close {
-    background: #e0e0e0;
-    border: none;
-    border-radius: 12px;
-    width: 32px;
-    height: 32px;
-    font-weight: 700;
-    font-size: 20px;
-    line-height: 28px;
-    cursor: pointer;
-    color: #444;
-    transition: background 0.3s ease;
-  }
-  #app-close:hover {
-    background: #d0d0d0;
-  }
-  #app-content {
-    flex: 1;
-    padding: 12px 16px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  /* Switch styling for Settings */
-  .switch {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 12px 0;
-    font-size: 16px;
-  }
-  .switch input {
-    width: 40px;
-    height: 20px;
-    position: relative;
-    appearance: none;
-    background: #ccc;
-    outline: none;
-    border-radius: 10px;
-    transition: background 0.3s;
-    cursor: pointer;
-  }
-  .switch input:checked {
-    background: #007aff;
-  }
-  .switch input::before {
-    content: "";
-    position: absolute;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    top: 2px;
-    left: 2px;
-    background: white;
-    transition: 0.3s;
-  }
-  .switch input:checked::before {
-    left: 22px;
-  }
-  /* Canvas for Block Blast */
-  #blockblast-canvas {
-    touch-action: none;
-  }
-  /* Drawing Canvas for Procreate Portable */
-  #drawCanvas {
-    border-radius: 12px;
-    background: #fff;
-    box-shadow: 0 0 10px #aaa;
-    display: block;
-    margin: 12px auto;
-    border: 1px solid #ccc;
-  }
-  /* Vertical mode for Settings */
-  body.vertical-mode #home-screen {
-    flex-direction: column;
-    align-items: center;
-    padding-bottom: 30px;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fake iOS</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(to bottom, #e0e5f0, #f9f9fb);
+      overflow: hidden;
+    }
+
+    .status-bar {
+      height: 24px;
+      background: #f4f4f4;
+      font-size: 12px;
+      padding: 0 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 72px);
+      justify-content: center;
+      gap: 24px 16px;
+      padding: 36px 10px 120px;
+      transition: all 0.3s ease;
+    }
+
+    .icon {
+      text-align: center;
+      font-size: 12px;
+      color: #000;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .icon-box {
+      width: 60px;
+      height: 60px;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin: 0 auto 5px;
+    }
+
+    .dock {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      border-radius: 30px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      padding: 12px 24px;
+      display: flex;
+      gap: 20px;
+      z-index: 2;
+      transition: all 0.3s ease;
+    }
+
+    .dock .icon-box {
+      width: 48px;
+      height: 48px;
+      font-size: 24px;
+    }
+
+    #app-screen {
+      display: none;
+      position: fixed;
+      top: 24px;
+      left: 0;
+      width: 100vw;
+      height: calc(100vh - 24px);
+      background: #fff;
+      z-index: 5;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #app-header {
+      padding: 12px 16px;
+      background: #f2f2f7;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: bold;
+      font-size: 18px;
+      user-select: none;
+    }
+
+    #close-btn {
+      font-size: 24px;
+      cursor: pointer;
+      user-select: none;
+      color: #888;
+    }
+
+    #app-content {
+      padding: 0;
+      font-size: 16px;
+      flex: 1;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    canvas {
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      display: block;
+      margin: 12px auto;
+      touch-action: none;
+      background: #000;
+    }
+
+    label.switch {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 10px 16px;
+      padding: 8px;
+      background: #f1f1f1;
+      border-radius: 10px;
+      font-size: 16px;
+    }
+
+    iframe {
+      width: 100%;
+      border: none;
+      flex: 1;
+      border-radius: 0 0 16px 16px;
+    }
+
+    /* Vertical mode styles */
+    body.vertical-mode .grid {
+      grid-template-columns: 1fr !important;
+      max-width: 200px;
+      margin: 0 auto;
+      gap: 16px 0;
+    }
+
+    body.vertical-mode .dock {
+      position: fixed;
+      top: 60px;
+      left: 0;
+      width: 72px;
+      height: calc(100vh - 60px);
+      border-radius: 0 20px 20px 0;
+      flex-direction: column;
+      padding: 20px 0;
+      gap: 24px;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      transform: none;
+    }
+
+    /* Scrollbar for app-content */
+    #app-content::-webkit-scrollbar {
+      width: 8px;
+    }
+    #app-content::-webkit-scrollbar-thumb {
+      background-color: rgba(0,0,0,0.2);
+      border-radius: 4px;
+    }
+
+    @media (max-width: 400px) {
+      .grid {
+        grid-template-columns: repeat(3, 72px);
+      }
+      body.vertical-mode .grid {
+        max-width: 100%;
+      }
+    }
+
+    /* Geometry Dash styles */
+    #gd-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    #gd-levels {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .gd-level {
+      background: #007aff;
+      color: white;
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      user-select: none;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+      transition: background 0.2s ease;
+    }
+    .gd-level:hover {
+      background: #005bb5;
+    }
+
+    #gd-canvas {
+      background: #000;
+      border-radius: 12px;
+      width: 100%;
+      height: 300px;
+      display: block;
+      touch-action: none;
+    }
+
+    #gd-controls {
+      margin-top: 12px;
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    #gd-controls button {
+      padding: 10px 20px;
+      border-radius: 12px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      background: #007aff;
+      color: white;
+      user-select: none;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.3);
+      transition: background 0.2s ease;
+    }
+    #gd-controls button:hover {
+      background: #005bb5;
+    }
+
+    #gd-score {
+      margin-top: 12px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 18px;
+      color: #333;
+    }
+  </style>
 </head>
 <body>
 
-<div id="home-screen">
-  <div class="app-icon" data-app="Messages">
-    <img src="https://img.icons8.com/ios/50/000000/sms.png" alt="Messages" />
-    <span>Messages</span>
+  <div class="status-bar">
+    <div>📶 9:41 AM</div>
+    <div>🔋 100%</div>
   </div>
-  <div class="app-icon" data-app="Block Blast">
-    <img src="https://img.icons8.com/ios/50/000000/block.png" alt="Block Blast" />
-    <span>Block Blast</span>
+
+  <div class="grid">
+    <div class="icon" onclick="openApp('Messages')">
+      <div class="icon-box">💬</div>
+      <div>Messages</div>
+    </div>
+    <div class="icon" onclick="openApp('Block Blast')">
+      <div class="icon-box">🧱</div>
+      <div>Block Blast</div>
+    </div>
+    <div class="icon" onclick="openApp('Browser')">
+      <div class="icon-box">🌐</div>
+      <div>Browser</div>
+    </div>
+    <div class="icon" onclick="openApp('Settings')">
+      <div class="icon-box">⚙️</div>
+      <div>Settings</div>
+    </div>
+    <div class="icon" onclick="openApp('Procreate Portable')">
+      <div class="icon-box">🎨</div>
+      <div>Procreate<br>Portable</div>
+    </div>
+    <div class="icon" onclick="openApp('YouTube')">
+      <div class="icon-box">🎬</div>
+      <div>YouTube</div>
+    </div>
+    <div class="icon" onclick="openApp('Geometry Dash')">
+      <div class="icon-box">🎮</div>
+      <div>Geometry Dash</div>
+    </div>
   </div>
-  <div class="app-icon" data-app="Browser">
-    <img src="https://img.icons8.com/ios/50/000000/internet--v1.png" alt="Browser" />
-    <span>Browser</span>
+
+  <div class="dock">
+    <div class="icon"><div class="icon-box">📞</div></div>
+    <div class="icon"><div class="icon-box">🧭</div></div>
+    <div class="icon"><div class="icon-box">🎵</div></div>
+    <div class="icon"><div class="icon-box">📧</div></div>
   </div>
-  <div class="app-icon" data-app="Settings">
-    <img src="https://img.icons8.com/ios/50/000000/settings.png" alt="Settings" />
-    <span>Settings</span>
+
+  <div id="app-screen">
+    <div id="app-header">
+      <span id="app-title">App</span>
+      <span id="close-btn" onclick="closeApp()">×</span>
+    </div>
+    <div id="app-content"></div>
   </div>
-  <div class="app-icon" data-app="Procreate Portable">
-    <img src="https://img.icons8.com/ios/50/000000/paint-palette.png" alt="Procreate Portable" />
-    <span>Procreate</span>
-  </div>
-</div>
 
-<div id="app-screen" role="dialog" aria-modal="true" aria-labelledby="app-title">
-  <div id="app-header">
-    <div id="app-title">App</div>
-    <button id="app-close" aria-label="Close app">&times;</button>
-  </div>
-  <div id="app-content"></div>
-</div>
+  <script>
+    // Basic apps open logic
+    function openApp(name) {
+      const app = document.getElementById("app-screen");
+      const title = document.getElementById("app-title");
+      const content = document.getElementById("app-content");
+      title.textContent = name;
+      content.innerHTML = "";
 
-<script>
-  // App open and close handlers
-  const homeScreen = document.getElementById('home-screen');
-  const appScreen = document.getElementById('app-screen');
-  const appTitle = document.getElementById('app-title');
-  const appContent = document.getElementById('app-content');
-  const appClose = document.getElementById('app-close');
+      if (name === "Messages") {
+        content.innerHTML = "💬 This is the Messages app.";
+      } else if (name === "Block Blast") {
+  // Setup a 8x8 grid with random blocks (colors)
+  const rows = 8;
+  const cols = 8;
+  const blockSize = 40;
+  const colors = ['red', 'green', 'blue', 'yellow', 'purple'];
 
-  homeScreen.addEventListener('click', e => {
-    const appIcon = e.target.closest('.app-icon');
-    if (!appIcon) return;
-    const appName = appIcon.getAttribute('data-app');
-    openApp(appName);
-  });
+  content.innerHTML = `
+    <div style="text-align:center; margin-top:12px; font-weight:bold; font-size:18px;">Block Blast</div>
+    <canvas id="blockblast-canvas" width="${cols * blockSize}" height="${rows * blockSize}" 
+            style="background:#222; display:block; margin:12px auto; border-radius:12px; touch-action:none;"></canvas>
+    <div style="text-align:center; margin-top: 8px; font-weight:bold; font-size:16px;">Score: <span id="bb-score">0</span></div>
+    <button id="bb-restart" style="
+      margin-top: 12px; padding: 10px 24px; font-weight:bold; font-size:16px; border:none; border-radius:12px;
+      background:#007aff; color:#fff; cursor:pointer;
+    ">Restart</button>
+  `;
 
-  appClose.addEventListener('click', () => {
-    appScreen.style.display = 'none';
-    appContent.innerHTML = '';
-  });
+  const canvas = content.querySelector('#blockblast-canvas');
+  const ctx = canvas.getContext('2d');
 
-  function openApp(name) {
-    appTitle.textContent = name;
-    appContent.innerHTML = "";
-    appScreen.style.display = 'flex';
+  let grid = [];
+  let score = 0;
 
-    if (name === "Messages") {
-      appContent.innerHTML = "💬 This is the Messages app.";
-    } else if (name === "Block Blast") {
-      const rows = 8;
-      const cols = 8;
-      const blockSize = 40;
-      const colors = ['red', 'green', 'blue', 'yellow', 'purple'];
+  // Generate random block color
+  function randomColor() {
+    return colors[Math.floor(Math.random() * colors.length)];
+  }
 
-      appContent.innerHTML = `
-        <div style="text-align:center; margin-top:12px; font-weight:bold; font-size:18px;">Block Blast</div>
-        <canvas id="blockblast-canvas" width="${cols * blockSize}" height="${rows * blockSize}" 
-                style="background:#222; display:block; margin:12px auto; border-radius:12px; touch-action:none;"></canvas>
-        <div style="text-align:center; margin-top: 8px; font-weight:bold; font-size:16px;">Score: <span id="bb-score">0</span></div>
-        <button id="bb-restart" style="
-          margin-top: 12px; padding: 10px 24px; font-weight:bold; font-size:16px; border:none; border-radius:12px;
-          background:#007aff; color:#fff; cursor:pointer;
-        ">Restart</button>
-      `;
-
-      const canvas = document.getElementById('blockblast-canvas');
-      const ctx = canvas.getContext('2d');
-      let grid = [];
-      let score = 0;
-
-      function randomColor() {
-        return colors[Math.floor(Math.random() * colors.length)];
+  // Initialize grid with random colors
+  function initGrid() {
+    grid = [];
+    for (let r = 0; r < rows; r++) {
+      let row = [];
+      for (let c = 0; c < cols; c++) {
+        row.push(randomColor());
       }
-
-      function initGrid() {
-        grid = [];
-        for (let r = 0; r < rows; r++) {
-          let row = [];
-          for (let c = 0; c < cols; c++) {
-            row.push(randomColor());
-          }
-          grid.push(row);
-        }
-      }
-
-      function drawGrid() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        for (let r = 0; r < rows; r++) {
-          for (let c = 0; c < cols; c++) {
-            const x = c * blockSize;
-            const y = r * blockSize;
-            ctx.fillStyle = grid[r][c];
-            ctx.fillRect(x + 2, y + 2, blockSize - 4, blockSize - 4);
-            ctx.strokeStyle = '#111';
-            ctx.strokeRect(x + 2, y + 2, blockSize - 4, blockSize - 4);
-          }
-        }
-      }
-
-      function findMatches() {
-        let matches = [];
-        // horizontal matches
-        for (let r = 0; r < rows; r++) {
-          let matchLength = 1;
-          for (let c = 1; c < cols; c++) {
-            if (grid[r][c] === grid[r][c - 1]) {
-              matchLength++;
-            } else {
-              if (matchLength >= 3) {
-                for (let i = 0; i < matchLength; i++) {
-                  matches.push({r: r, c: c - 1 - i});
-                }
-              }
-              matchLength = 1;
-            }
-          }
-          if (matchLength >= 3) {
-            for (let i = 0; i < matchLength; i++) {
-              matches.push({r: r, c: cols - 1 - i});
-            }
-          }
-        }
-        // vertical matches
-        for (let c = 0; c < cols; c++) {
-          let matchLength = 1;
-          for (let r = 1; r < rows; r++) {
-            if (grid[r][c] === grid[r - 1][c]) {
-              matchLength++;
-            } else {
-              if (matchLength >= 3) {
-                for (let i = 0; i < matchLength; i++) {
-                  matches.push({r: r - 1 - i, c: c});
-                }
-              }
-              matchLength = 1;
-            }
-          }
-          if (matchLength >= 3) {
-            for (let i = 0; i < matchLength; i++) {
-              matches.push({r: rows - 1 - i, c: c});
-            }
-          }
-        }
-        // Remove duplicates
-        let uniqueMatches = [];
-        let seen = {};
-        matches.forEach(pos => {
-          let key = pos.r + ',' + pos.c;
-          if (!seen[key]) {
-            uniqueMatches.push(pos);
-            seen[key] = true;
-          }
-        });
-        return uniqueMatches;
-      }
-
-      function removeMatchesAndCollapse(matches) {
-        if (matches.length === 0) return false;
-
-        score += matches.length * 10;
-        document.getElementById('bb-score').textContent = score;
-
-        matches.forEach(({r, c}) => {
-          grid[r][c] = null;
-        });
-
-        // Collapse columns down
-        for (let c = 0; c < cols; c++) {
-          let col = [];
-          for (let r = 0; r < rows; r++) {
-            if (grid[r][c] !== null) {
-              col.push(grid[r][c]);
-            }
-          }
-          while (col.length < rows) {
-            col.unshift(randomColor());
-          }
-          for (let r = 0; r < rows; r++) {
-            grid[r][c] = col[r];
-          }
-        }
-        return true;
-      }
-
-      function swapBlocks(r1, c1, r2, c2) {
-        const temp = grid[r1][c1];
-        grid[r1][c1] = grid[r2][c2];
-        grid[r2][c2] = temp;
-      }
-
-      function isAdjacent(r1, c1, r2, c2) {
-        return (r1 === r2 && Math.abs(c1 - c2) === 1) || (c1 === c2 && Math.abs(r1 - r2) === 1);
-      }
-
-      let selected = null;
-
-      canvas.addEventListener('pointerdown', e => {
-        e.preventDefault();
-        const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        const c = Math.floor(x / blockSize);
-        const r = Math.floor(y / blockSize);
-        if (r < 0 || r >= rows || c < 0 || c >= cols) return;
-
-        if (!selected) {
-          selected = {r, c};
-          drawGrid();
-          highlightBlock(selected.r, selected.c);
-        } else {
-          if (r === selected.r && c === selected.c) {
-            selected = null;
-            drawGrid();
-          } else if (isAdjacent(r, c, selected.r, selected.c)) {
-            swapBlocks(r, c, selected.r, selected.c);
-            const matches = findMatches();
-            if (matches.length > 0) {
-              function clearLoop() {
-                const m = findMatches();
-                if (m.length > 0) {
-                  removeMatchesAndCollapse(m);
-                  drawGrid();
-                  setTimeout(clearLoop, 300);
-                }
-              }
-              clearLoop();
-            } else {
-              swapBlocks(r, c, selected.r, selected.c);
-            }
-            selected = null;
-            drawGrid();
-          } else {
-            selected = {r, c};
-            drawGrid();
-            highlightBlock(selected.r, selected.c);
-          }
-        }
-      });
-
-      function highlightBlock(r, c) {
-        ctx.strokeStyle = 'white';
-        ctx.lineWidth = 3;
-        ctx.strokeRect(c * blockSize + 3, r * blockSize + 3, blockSize - 6, blockSize - 6);
-      }
-
-      appContent.querySelector('#bb-restart').addEventListener('click', () => {
-        score = 0;
-        document.getElementById('bb-score').textContent = score;
-        initGrid();
-        drawGrid();
-      });
-
-      initGrid();
-      drawGrid();
-
-    } else if (name === "Browser") {
-      appContent.innerHTML = `
-        <div style="display:flex; padding:8px 12px; gap:8px; border-bottom:1px solid #ccc; background:#f2f2f7;">
-          <input id="addressInput" type="text" placeholder="Enter URL or search" 
-                 style="flex:1; border-radius:12px; border:1px solid #ccc; padding:6px 12px; font-size:14px;" />
-          <button id="goButton" style="
-            background:#007aff; color:#fff; border:none; border-radius:12px; padding:6px 14px; font-weight:600;
-            cursor:pointer;
-          ">Go</button>
-        </div>
-        <iframe id="browserFrame" src="https://example.com" style="width:100%; flex:1; border:none; border-radius: 0 0 16px 16px; height:500px;"></iframe>
-      `;
-
-      const input = appContent.querySelector('#addressInput');
-      const button = appContent.querySelector('#goButton');
-      const iframe = appContent.querySelector('#browserFrame');
-
-      function loadURL() {
-        let url = input.value.trim();
-        if (!url) return;
-        if (!url.startsWith('http://') && !url.startsWith('https://')) {
-          url = 'https://' + url;
-        }
-        iframe.src = url;
-      }
-
-      button.addEventListener('click', loadURL);
-      input.addEventListener('keydown', e => {
-        if (e.key === 'Enter') loadURL();
-      });
-
-    } else if (name === "Settings") {
-      appContent.innerHTML = `
-        <label class="switch">Airplane Mode <input type="checkbox" /></label>
-        <label class="switch">Wi-Fi <input type="checkbox" checked /></label>
-        <label class="switch">Bluetooth <input type="checkbox" /></label>
-        <label class="switch">Dark Mode <input type="checkbox" /></label>
-        <button id="toggleOrientationBtn" style="
-          margin: 20px 16px;
-          padding: 10px;
-          width: calc(100% - 32px);
-          background: #007aff;
-          color: white;
-          border: none;
-          border-radius: 12px;
-          font-weight: 600;
-          cursor: pointer;
-          font-size: 16px;
-        ">Switch to Vertical Mode</button>
-      `;
-
-      setTimeout(() => {
-        const toggleBtn = document.getElementById('toggleOrientationBtn');
-        toggleBtn.addEventListener('click', () => {
-          document.body.classList.toggle('vertical-mode');
-          if(document.body.classList.contains('vertical-mode')){
-            toggleBtn.textContent = "Switch to Horizontal Mode";
-          } else {
-            toggleBtn.textContent = "Switch to Vertical Mode";
-          }
-        });
-
-        // Initialize button text
-        toggleBtn.textContent = document.body.classList.contains('vertical-mode') ? "Switch to Horizontal Mode" : "Switch to Vertical Mode";
-      }, 50);
-
-    } else if (name === "Procreate Portable") {
-      appContent.innerHTML = `
-        <canvas id="drawCanvas" width="320" height="360"></canvas>
-        <div style="text-align:center; margin-top: 8px;">
-          <input type="color" id="colorPicker" value="#000000" />
-          <button id="clearCanvasBtn" style="margin-left:10px;padding:6px 12px;font-size:14px;">Clear</button>
-        </div>
-      `;
-
-      setTimeout(() => {
-        const canvas = document.getElementById('drawCanvas');
-        const ctx = canvas.getContext('2d');
-        let drawing = false;
-        let lastX = 0;
-        let lastY = 0;
-        const colorPicker = document.getElementById('colorPicker');
-        const clearBtn = document.getElementById('clearCanvasBtn');
-
-        function startDraw(e) {
-          drawing = true;
-          [lastX, lastY] = [e.offsetX, e.offsetY];
-        }
-        function draw(e) {
-          if (!drawing) return;
-          ctx.strokeStyle = colorPicker.value;
-          ctx.lineWidth = 3;
-          ctx.lineJoin = 'round';
-          ctx.lineCap = 'round';
-          ctx.beginPath();
-          ctx.moveTo(lastX, lastY);
-          ctx.lineTo(e.offsetX, e.offsetY);
-          ctx.stroke();
-          [lastX, lastY] = [e.offsetX, e.offsetY];
-        }
-        function stopDraw() {
-          drawing = false;
-        }
-
-        canvas.addEventListener('mousedown', startDraw);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseup', stopDraw);
-        canvas.addEventListener('mouseout', stopDraw);
-
-        clearBtn.addEventListener('click', () => {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
-        });
-      }, 100);
-
-    } else {
-      appContent.innerHTML = `<p>App "${name}" not implemented yet.</p>`;
+      grid.push(row);
     }
   }
-</script>
+
+  // Draw the grid on canvas
+  function drawGrid() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const x = c * blockSize;
+        const y = r * blockSize;
+        ctx.fillStyle = grid[r][c];
+        ctx.fillRect(x + 2, y + 2, blockSize - 4, blockSize - 4);
+        ctx.strokeStyle = '#111';
+        ctx.strokeRect(x + 2, y + 2, blockSize - 4, blockSize - 4);
+      }
+    }
+  }
+
+  // Check for matches (horizontal & vertical) of 3 or more blocks
+  function findMatches() {
+    let matches = [];
+    // horizontal
+    for (let r = 0; r < rows; r++) {
+      let matchLength = 1;
+      for (let c = 1; c < cols; c++) {
+        if (grid[r][c] === grid[r][c - 1]) {
+          matchLength++;
+        } else {
+          if (matchLength >= 3) {
+            for (let i = 0; i < matchLength; i++) {
+              matches.push({r: r, c: c - 1 - i});
+            }
+          }
+          matchLength = 1;
+        }
+      }
+      if (matchLength >= 3) {
+        for (let i = 0; i < matchLength; i++) {
+          matches.push({r: r, c: cols - 1 - i});
+        }
+      }
+    }
+
+    // vertical
+    for (let c = 0; c < cols; c++) {
+      let matchLength = 1;
+      for (let r = 1; r < rows; r++) {
+        if (grid[r][c] === grid[r - 1][c]) {
+          matchLength++;
+        } else {
+          if (matchLength >= 3) {
+            for (let i = 0; i < matchLength; i++) {
+              matches.push({r: r - 1 - i, c: c});
+            }
+          }
+          matchLength = 1;
+        }
+      }
+      if (matchLength >= 3) {
+        for (let i = 0; i < matchLength; i++) {
+          matches.push({r: rows - 1 - i, c: c});
+        }
+      }
+    }
+
+    // Remove duplicates
+    let uniqueMatches = [];
+    let seen = {};
+    matches.forEach(pos => {
+      let key = pos.r + ',' + pos.c;
+      if (!seen[key]) {
+        uniqueMatches.push(pos);
+        seen[key] = true;
+      }
+    });
+    return uniqueMatches;
+  }
+
+  // Remove matches, add score, and collapse grid
+  function removeMatchesAndCollapse(matches) {
+    if (matches.length === 0) return false;
+
+    score += matches.length * 10;
+    document.getElementById('bb-score').textContent = score;
+
+    // Remove matched blocks
+    matches.forEach(({r, c}) => {
+      grid[r][c] = null;
+    });
+
+    // Collapse columns down
+    for (let c = 0; c < cols; c++) {
+      let col = [];
+      for (let r = 0; r < rows; r++) {
+        if (grid[r][c] !== null) {
+          col.push(grid[r][c]);
+        }
+      }
+      // Add new blocks at top
+      while (col.length < rows) {
+        col.unshift(randomColor());
+      }
+      for (let r = 0; r < rows; r++) {
+        grid[r][c] = col[r];
+      }
+    }
+    return true;
+  }
+
+  // Swap two blocks in grid
+  function swapBlocks(r1, c1, r2, c2) {
+    const temp = grid[r1][c1];
+    grid[r1][c1] = grid[r2][c2];
+    grid[r2][c2] = temp;
+  }
+
+  // Check if two positions are adjacent
+  function isAdjacent(r1, c1, r2, c2) {
+    return (r1 === r2 && Math.abs(c1 - c2) === 1) || (c1 === c2 && Math.abs(r1 - r2) === 1);
+  }
+
+  // Game state for selection
+  let selected = null;
+
+  // Handle click / tap for swapping
+  canvas.addEventListener('pointerdown', e => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const c = Math.floor(x / blockSize);
+    const r = Math.floor(y / blockSize);
+    if (r < 0 || r >= rows || c < 0 || c >= cols) return;
+
+    if (!selected) {
+      selected = {r, c};
+      drawGrid();
+      highlightBlock(selected.r, selected.c);
+    } else {
+      if (r === selected.r && c === selected.c) {
+        // Deselect if same block
+        selected = null;
+        drawGrid();
+      } else if (isAdjacent(r, c, selected.r, selected.c)) {
+        // Swap and check matches
+        swapBlocks(r, c, selected.r, selected.c);
+        const matches = findMatches();
+        if (matches.length > 0) {
+          // Valid move, remove matches repeatedly until none
+          function clearLoop() {
+            const m = findMatches();
+            if (m.length > 0) {
+              removeMatchesAndCollapse(m);
+              drawGrid();
+              setTimeout(clearLoop, 300);
+            }
+          }
+          clearLoop();
+        } else {
+          // No match, swap back
+          swapBlocks(r, c, selected.r, selected.c);
+        }
+        selected = null;
+        drawGrid();
+      } else {
+        // Select new block if not adjacent
+        selected = {r, c};
+        drawGrid();
+        highlightBlock(selected.r, selected.c);
+      }
+    }
+  });
+
+  // Highlight selected block
+  function highlightBlock(r, c) {
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(c * blockSize + 3, r * blockSize + 3, blockSize - 6, blockSize - 6);
+  }
+
+  // Restart button
+  content.querySelector('#bb-restart').addEventListener('click', () => {
+    score = 0;
+    document.getElementById('bb-score').textContent = score;
+    initGrid();
+    drawGrid();
+  });
+
+  // Initialize and draw first time
+  initGrid();
+  drawGrid();
+        
+      } else if (name === "Browser") {
+        content.innerHTML = `
+          <div style="display:flex; padding:8px 12px; gap:8px; border-bottom:1px solid #ccc; background:#f2f2f7;">
+            <input id="addressInput" type="text" placeholder="Enter URL or search" 
+                   style="flex:1; border-radius:12px; border:1px solid #ccc; padding:6px 12px; font-size:14px;" />
+            <button id="goButton" style="
+              background:#007aff; color:#fff; border:none; border-radius:12px; padding:6px 14px; font-weight:600;
+              cursor:pointer;
+            ">Go</button>
+          </div>
+          <iframe id="browserFrame" src="https://example.com" style="width:100%; flex:1; border:none; border-radius: 0 0 16px 16px;"></iframe>
+        `;
+
+        const input = content.querySelector('#addressInput');
+        const button = content.querySelector('#goButton');
+        const iframe = content.querySelector('#browserFrame');
+
+        function loadURL() {
+          let url = input.value.trim();
+          if (!url) return;
+          if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            url = 'https://' + url;
+          }
+          iframe.src = url;
+        }
+else if (name === "Block Blast") {
+  // Setup a 8x8 grid with random blocks (colors)
+  const rows = 8;
+  const cols = 8;
+  const blockSize = 40;
+  const colors = ['red', 'green', 'blue', 'yellow', 'purple'];
+
+  content.innerHTML = `
+    <div style="text-align:center; margin-top:12px; font-weight:bold; font-size:18px;">Block Blast</div>
+    <canvas id="blockblast-canvas" width="${cols * blockSize}" height="${rows * blockSize}" 
+            style="background:#222; display:block; margin:12px auto; border-radius:12px; touch-action:none;"></canvas>
+    <div style="text-align:center; margin-top: 8px; font-weight:bold; font-size:16px;">Score: <span id="bb-score">0</span></div>
+    <button id="bb-restart" style="
+      margin-top: 12px; padding: 10px 24px; font-weight:bold; font-size:16px; border:none; border-radius:12px;
+      background:#007aff; color:#fff; cursor:pointer;
+    ">Restart</button>
+  `;
+
+  const canvas = content.querySelector('#blockblast-canvas');
+  const ctx = canvas.getContext('2d');
+
+  let grid = [];
+  let score = 0;
+
+  // Generate random block color
+  function randomColor() {
+    return colors[Math.floor(Math.random() * colors.length)];
+  }
+
+  // Initialize grid with random colors
+  function initGrid() {
+    grid = [];
+    for (let r = 0; r < rows; r++) {
+      let row = [];
+      for (let c = 0; c < cols; c++) {
+        row.push(randomColor());
+      }
+      grid.push(row);
+    }
+  }
+
+  // Draw the grid on canvas
+  function drawGrid() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const x = c * blockSize;
+        const y = r * blockSize;
+        ctx.fillStyle = grid[r][c];
+        ctx.fillRect(x + 2, y + 2, blockSize - 4, blockSize - 4);
+        ctx.strokeStyle = '#111';
+        ctx.strokeRect(x + 2, y + 2, blockSize - 4, blockSize - 4);
+      }
+    }
+  }
+
+  // Check for matches (horizontal & vertical) of 3 or more blocks
+  function findMatches() {
+    let matches = [];
+    // horizontal
+    for (let r = 0; r < rows; r++) {
+      let matchLength = 1;
+      for (let c = 1; c < cols; c++) {
+        if (grid[r][c] === grid[r][c - 1]) {
+          matchLength++;
+        } else {
+          if (matchLength >= 3) {
+            for (let i = 0; i < matchLength; i++) {
+              matches.push({r: r, c: c - 1 - i});
+            }
+          }
+          matchLength = 1;
+        }
+      }
+      if (matchLength >= 3) {
+        for (let i = 0; i < matchLength; i++) {
+          matches.push({r: r, c: cols - 1 - i});
+        }
+      }
+    }
+
+    // vertical
+    for (let c = 0; c < cols; c++) {
+      let matchLength = 1;
+      for (let r = 1; r < rows; r++) {
+        if (grid[r][c] === grid[r - 1][c]) {
+          matchLength++;
+        } else {
+          if (matchLength >= 3) {
+            for (let i = 0; i < matchLength; i++) {
+              matches.push({r: r - 1 - i, c: c});
+            }
+          }
+          matchLength = 1;
+        }
+      }
+      if (matchLength >= 3) {
+        for (let i = 0; i < matchLength; i++) {
+          matches.push({r: rows - 1 - i, c: c});
+        }
+      }
+    }
+
+    // Remove duplicates
+    let uniqueMatches = [];
+    let seen = {};
+    matches.forEach(pos => {
+      let key = pos.r + ',' + pos.c;
+      if (!seen[key]) {
+        uniqueMatches.push(pos);
+        seen[key] = true;
+      }
+    });
+    return uniqueMatches;
+  }
+
+  // Remove matches, add score, and collapse grid
+  function removeMatchesAndCollapse(matches) {
+    if (matches.length === 0) return false;
+
+    score += matches.length * 10;
+    document.getElementById('bb-score').textContent = score;
+
+    // Remove matched blocks
+    matches.forEach(({r, c}) => {
+      grid[r][c] = null;
+    });
+
+    // Collapse columns down
+    for (let c = 0; c < cols; c++) {
+      let col = [];
+      for (let r = 0; r < rows; r++) {
+        if (grid[r][c] !== null) {
+          col.push(grid[r][c]);
+        }
+      }
+      // Add new blocks at top
+      while (col.length < rows) {
+        col.unshift(randomColor());
+      }
+      for (let r = 0; r < rows; r++) {
+        grid[r][c] = col[r];
+      }
+    }
+    return true;
+  }
+
+  // Swap two blocks in grid
+  function swapBlocks(r1, c1, r2, c2) {
+    const temp = grid[r1][c1];
+    grid[r1][c1] = grid[r2][c2];
+    grid[r2][c2] = temp;
+  }
+
+  // Check if two positions are adjacent
+  function isAdjacent(r1, c1, r2, c2) {
+    return (r1 === r2 && Math.abs(c1 - c2) === 1) || (c1 === c2 && Math.abs(r1 - r2) === 1);
+  }
+
+  // Game state for selection
+  let selected = null;
+
+  // Handle click / tap for swapping
+  canvas.addEventListener('pointerdown', e => {
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const c = Math.floor(x / blockSize);
+    const r = Math.floor(y / blockSize);
+    if (r < 0 || r >= rows || c < 0 || c >= cols) return;
+
+    if (!selected) {
+      selected = {r, c};
+      drawGrid();
+      highlightBlock(selected.r, selected.c);
+    } else {
+      if (r === selected.r && c === selected.c) {
+        // Deselect if same block
+        selected = null;
+        drawGrid();
+      } else if (isAdjacent(r, c, selected.r, selected.c)) {
+        // Swap and check matches
+        swapBlocks(r, c, selected.r, selected.c);
+        const matches = findMatches();
+        if (matches.length > 0) {
+          // Valid move, remove matches repeatedly until none
+          function clearLoop() {
+            const m = findMatches();
+            if (m.length > 0) {
+              removeMatchesAndCollapse(m);
+              drawGrid();
+              setTimeout(clearLoop, 300);
+            }
+          }
+          clearLoop();
+        } else {
+          // No match, swap back
+          swapBlocks(r, c, selected.r, selected.c);
+        }
+        selected = null;
+        drawGrid();
+      } else {
+        // Select new block if not adjacent
+        selected = {r, c};
+        drawGrid();
+        highlightBlock(selected.r, selected.c);
+      }
+    }
+  });
+
+  // Highlight selected block
+  function highlightBlock(r, c) {
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(c * blockSize + 3, r * blockSize + 3, blockSize - 6, blockSize - 6);
+  }
+
+  // Restart button
+  content.querySelector('#bb-restart').addEventListener('click', () => {
+    score = 0;
+    document.getElementById('bb-score').textContent = score;
+    initGrid();
+    drawGrid();
+  });
+
+  // Initialize and draw first time
+  initGrid();
+  drawGrid();
+}
+
+        button.addEventListener('click', loadURL);
+        input.addEventListener('keydown', e => {
+          if (e.key === 'Enter') loadURL();
+        });
+      } else if (name === "Settings") {
+        content.innerHTML = `
+          <label class="switch">Airplane Mode <input type="checkbox" /></label>
+          <label class="switch">Wi-Fi <input type="checkbox" checked /></label>
+          <label class="switch">Bluetooth <input type="checkbox" /></label>
+          <label class="switch">Dark Mode <input type="checkbox" /></label>
+          <button id="toggleOrientationBtn" style="
+            margin: 20px 16px;
+            padding: 10px;
+            width: calc(100% - 32px);
+            background: #007aff;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 16px;
+          ">Switch to Vertical Mode</button>
+        `;
+
+        // Add event listener after DOM is updated
+        setTimeout(() => {
+          const toggleBtn = document.getElementById('toggleOrientationBtn');
+          toggleBtn.addEventListener('click', () => {
+            document.body.classList.toggle('vertical-mode');
+            if(document.body.classList.contains('vertical-mode')){
+              toggleBtn.textContent = "Switch to Horizontal Mode";
+            } else {
+              toggleBtn.textContent = "Switch to Vertical Mode";
+            }
+          });
+
+          // Set initial button text based on current mode
+          const toggleBtnInit = document.getElementById('toggleOrientationBtn');
+          toggleBtnInit.textContent = document.body.classList.contains('vertical-mode') ? "Switch to Horizontal Mode" : "Switch to Vertical Mode";
+        }, 50);
+      } else if (name === "Procreate Portable") {
+        content.innerHTML = `
+          <canvas id="drawCanvas" width="320" height="360"></canvas>
+          <div style="text-align:center; margin-top: 8px;">
+            <input type="color" id="colorPicker" value="#000000" />
+            <button onclick="clearCanvas()" style="margin-left:10px;padding:6px 12px;font-size:14px;">Clear</button>
+          </div>
+        `;
+        setTimeout(enableDrawing, 100);
+      } else if (name === "YouTube") {
+        content.innerHTML = `
+          <div style="padding: 12px; display: flex; flex-direction: column; gap: 16px;">
+            <div style="font-weight: bold; font-size: 18px;">Recommended</div>
+            <div class="yt-video" onclick="loadVideo('https://www.youtube.com/embed/WLKJ8lBGI2E')"
+                 style="cursor:pointer;">
+              <img src="https://img.youtube.com/vi/WLKJ8lBGI2E/0.jpg" style="width: 100%; border-radius: 12px;" />
+              <div style="margin-top: 8px; font-weight: 500;">My Video</div>
+              <div style="font-size: 12px; color: gray;">Me</div>
+            </div>
+            <div class="yt-video" onclick="loadVideo('https://www.youtube.com/embed/dQw4w9WgXcQ')"
+                 style="cursor:pointer;">
+              <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/0.jpg" style="width: 100%; border-radius: 12px;" />
+              <div style="margin-top: 8px; font-weight: 500;">Never Gonna Give You Up</div>
+              <div style="font-size: 12px; color: gray;">Rick Astley</div>
+            </div>
+          </div>
+        `;
+      } else if (name === "Geometry Dash") {
+        // Show level selection screen for Geometry Dash
+        content.innerHTML = `
+          <div id="gd-container">
+            <div id="gd-levels">
+              <div class="gd-level" onclick="startGDLevel('stereo')">Stereo Madness</div>
+              <div class="gd-level" onclick="startGDLevel('dash')">Dash</div>
+              <div class="gd-level" onclick="startGDLevel('slaughterhouse')">Slaughterhouse</div>
+            </div>
+          </div>
+        `;
+      } else {
+        content.innerHTML = `<p>🧠 Unknown app.</p>`;
+      }
+
+      app.style.display = "flex";
+      app.style.flexDirection = "column";
+    }
+
+    function closeApp() {
+      document.getElementById("app-screen").style.display = "none";
+      // Stop any game loops if running
+      stopGDGame();
+    }
+
+    // Procreate drawing functions
+    function enableDrawing() {
+      const canvas = document.getElementById('drawCanvas');
+      const ctx = canvas.getContext('2d');
+      let drawing = false;
+      let color = document.getElementById('colorPicker').value;
+
+      canvas.addEventListener('pointerdown', e => {
+        drawing = true;
+        ctx.beginPath();
+        ctx.moveTo(e.offsetX, e.offsetY);
+      });
+
+      canvas.addEventListener('pointermove', e => {
+        if (!drawing) return;
+        ctx.strokeStyle = color;
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+      });
+
+      canvas.addEventListener('pointerup', () => drawing = false);
+      canvas.addEventListener('pointerleave', () => drawing = false);
+
+      document.getElementById('colorPicker').addEventListener('input', e => {
+        color = e.target.value;
+      });
+    }
+
+    function clearCanvas() {
+      const canvas = document.getElementById('drawCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function loadVideo(url) {
+      const content = document.getElementById("app-content");
+      content.innerHTML = `
+        <div style="padding: 12px;">
+          <button onclick="openApp('YouTube')" style="
+            padding: 6px 12px;
+            background: #ff0000;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            cursor: pointer;
+          ">← Back</button>
+          <iframe width="100%" height="200" src="${url}" frameborder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen>
+          </iframe>
+        </div>
+      `;
+    }
+
+    // --------- Geometry Dash game logic ---------
+
+    let gdGameRunning = false;
+    let gdAnimationFrame = null;
+
+    function startGDLevel(level) {
+      const content = document.getElementById('app-content');
+      content.innerHTML = `
+        <div id="gd-container">
+          <canvas id="gd-canvas" width="480" height="300"></canvas>
+          <div id="gd-controls">
+            <button id="gd-back-btn">Back</button>
+            <button id="gd-restart-btn">Restart</button>
+          </div>
+          <div id="gd-score">Score: 0</div>
+        </div>
+      `;
+
+      // Attach back and restart handlers
+      document.getElementById('gd-back-btn').onclick = () => {
+        stopGDGame();
+        openApp('Geometry Dash');
+      };
+      document.getElementById('gd-restart-btn').onclick = () => {
+        stopGDGame();
+        startGDLevel(level);
+      };
+
+      const canvas = document.getElementById('gd-canvas');
+      const ctx = canvas.getContext('2d');
+
+      // Game variables
+      const width = canvas.width;
+      const height = canvas.height;
+      const groundY = height - 50;
+
+      let cube = {
+        x: 50,
+        y: groundY,
+        width: 30,
+        height: 30,
+        dy: 0,
+        gravity: 0.8,
+        jumpStrength: -15,
+        onGround: true,
+        color: '#00aaff',
+      };
+
+      let obstacles = [];
+      let obstacleSpeed = 5;
+      let spawnInterval = 120; // frames
+      let frameCount = 0;
+      let score = 0;
+      let gameOver = false;
+
+      // Adjust difficulty based on level
+      if (level === 'stereo') {
+        obstacleSpeed = 4;
+        spawnInterval = 150;
+      } else if (level === 'dash') {
+        obstacleSpeed = 5.5;
+        spawnInterval = 110;
+      } else if (level === 'slaughterhouse') {
+        obstacleSpeed = 7;
+        spawnInterval = 90;
+      }
+
+      // Input handling (jump on click/tap/space)
+      function jump() {
+        if (cube.onGround && !gameOver) {
+          cube.dy = cube.jumpStrength;
+          cube.onGround = false;
+        }
+      }
+
+      canvas.addEventListener('mousedown', jump);
+      canvas.addEventListener('touchstart', e => {
+        e.preventDefault();
+        jump();
+      }, {passive: false});
+
+      document.addEventListener('keydown', e => {
+        if (e.code === 'Space') {
+          jump();
+        }
+      });
+
+      function resetGame() {
+        cube.y = groundY;
+        cube.dy = 0;
+        cube.onGround = true;
+        obstacles = [];
+        frameCount = 0;
+        score = 0;
+        gameOver = false;
+      }
+
+      resetGame();
+
+      function update() {
+        if (gameOver) return;
+
+        frameCount++;
+        // Move cube
+        cube.dy += cube.gravity;
+        cube.y += cube.dy;
+        if (cube.y > groundY) {
+          cube.y = groundY;
+          cube.dy = 0;
+          cube.onGround = true;
+        }
+
+        // Spawn obstacles
+        if (frameCount % spawnInterval === 0) {
+          // Obstacles are rectangles of random heights
+          let obsHeight = 30 + Math.random() * 40;
+          obstacles.push({
+            x: width,
+            y: groundY + cube.height - obsHeight,
+            width: 20,
+            height: obsHeight,
+            color: '#ff3b3b',
+          });
+        }
+
+        // Move obstacles and check collision
+        for (let i = obstacles.length -1; i >=0; i--) {
+          obstacles[i].x -= obstacleSpeed;
+
+          // Collision detection (AABB)
+          if (cube.x < obstacles[i].x + obstacles[i].width &&
+              cube.x + cube.width > obstacles[i].x &&
+              cube.y + cube.height > obstacles[i].y) {
+            gameOver = true;
+          }
+
+          // Remove off screen
+          if (obstacles[i].x + obstacles[i].width < 0) {
+            obstacles.splice(i,1);
+            if (!gameOver) score++;
+          }
+        }
+      }
+
+      function draw() {
+        ctx.clearRect(0,0,width,height);
+
+        // Draw ground
+        ctx.fillStyle = '#222';
+        ctx.fillRect(0, groundY + cube.height, width, height - groundY - cube.height);
+
+        // Draw cube
+        ctx.fillStyle = cube.color;
+        ctx.fillRect(cube.x, cube.y, cube.width, cube.height);
+
+        // Draw obstacles
+        obstacles.forEach(obs => {
+          ctx.fillStyle = obs.color;
+          ctx.fillRect(obs.x, obs.y, obs.width, obs.height);
+        });
+
+        // If game over, show text
+        if (gameOver) {
+          ctx.fillStyle = 'rgba(0,0,0,0.7)';
+          ctx.fillRect(0, 0, width, height);
+          ctx.fillStyle = '#fff';
+          ctx.font = '36px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('Game Over!', width / 2, height / 2 - 20);
+          ctx.font = '20px sans-serif';
+          ctx.fillText(`Score: ${score}`, width / 2, height / 2 + 20);
+        }
+      }
+
+      function gameLoop() {
+        if (!gdGameRunning) return;
+        update();
+        draw();
+        document.getElementById('gd-score').textContent = `Score: ${score}`;
+        gdAnimationFrame = requestAnimationFrame(gameLoop);
+      }
+
+      gdGameRunning = true;
+      gameLoop();
+
+      // Save stop function to global so can be stopped when closing app
+      window.stopGDGame = function() {
+        gdGameRunning = false;
+        if (gdAnimationFrame) cancelAnimationFrame(gdAnimationFrame);
+      }
+    }
+  </script>
 
 </body>
 </html>
