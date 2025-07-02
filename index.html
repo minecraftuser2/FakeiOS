@@ -319,83 +319,8 @@
 
       if (name === "Messages") {
         content.innerHTML = "💬 This is the Messages app.";
-      else if (name === "Block Blast") {
-  content.innerHTML = `
-    <div style="padding: 16px;">
-      <canvas id="bb-canvas" width="320" height="400" style="background:#eee; border-radius: 12px; display:block; margin:auto;"></canvas>
-      <p style="text-align:center; margin-top:12px;">Tap on blocks to blast them!</p>
-    </div>
-  `;
-
-  setTimeout(() => {
-    const canvas = document.getElementById('bb-canvas');
-    const ctx = canvas.getContext('2d');
-
-    const gridSize = 6;
-    const cellSize = 50;
-    const grid = [];
-
-    const colors = ['red', 'green', 'blue', 'orange', 'purple'];
-
-    // Initialize grid
-    for (let y = 0; y < gridSize; y++) {
-      grid[y] = [];
-      for (let x = 0; x < gridSize; x++) {
-        grid[y][x] = colors[Math.floor(Math.random() * colors.length)];
-      }
-    }
-
-    function drawGrid() {
-      for (let y = 0; y < gridSize; y++) {
-        for (let x = 0; x < gridSize; x++) {
-          ctx.fillStyle = grid[y][x];
-          ctx.fillRect(x * cellSize, y * cellSize, cellSize - 2, cellSize - 2);
-        }
-      }
-    }
-
-    function blast(x, y, color) {
-      if (x < 0 || x >= gridSize || y < 0 || y >= gridSize) return;
-      if (grid[y][x] !== color) return;
-      grid[y][x] = null;
-      blast(x + 1, y, color);
-      blast(x - 1, y, color);
-      blast(x, y + 1, color);
-      blast(x, y - 1, color);
-    }
-
-    function collapseGrid() {
-      for (let x = 0; x < gridSize; x++) {
-        let column = [];
-        for (let y = 0; y < gridSize; y++) {
-          if (grid[y][x]) column.push(grid[y][x]);
-        }
-        while (column.length < gridSize) {
-          column.unshift(colors[Math.floor(Math.random() * colors.length)]);
-        }
-        for (let y = 0; y < gridSize; y++) {
-          grid[y][x] = column[y];
-        }
-      }
-    }
-
-    canvas.addEventListener('click', e => {
-      const rect = canvas.getBoundingClientRect();
-      const x = Math.floor((e.clientX - rect.left) / cellSize);
-      const y = Math.floor((e.clientY - rect.top) / cellSize);
-      const color = grid[y]?.[x];
-      if (color) {
-        blast(x, y, color);
-        collapseGrid();
-        drawGrid();
-      }
-    });
-
-    drawGrid();
-  }, 0);
-}
-
-
+      } else if (name === "Block Blast") {
+        content.innerHTML = "🧱 This is the fake Block Blast game!";
       } else if (name === "Browser") {
         content.innerHTML = `
           <div style="display:flex; padding:8px 12px; gap:8px; border-bottom:1px solid #ccc; background:#f2f2f7;">
