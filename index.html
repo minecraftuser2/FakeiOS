@@ -320,7 +320,10 @@
       if (name === "Messages") {
         content.innerHTML = "💬 This is the Messages app.";
       } else if (name === "Block Blast") {
-        content.innerHTML = "🧱 This is the fake Block Blast game!";
+        <div id="blockblast-app" class="app-page" style="display:none;">
+  <iframe src="https://block-blast-three.vercel.app/" style="width:100%; height:100%; border:none;"></iframe>
+</div>
+
       } else if (name === "Browser") {
         content.innerHTML = `
           <div style="display:flex; padding:8px 12px; gap:8px; border-bottom:1px solid #ccc; background:#f2f2f7;">
